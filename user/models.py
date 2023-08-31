@@ -45,6 +45,8 @@ class Alumni(models.Model):
                 "first_name": alumni.user.first_name,
                 "last_name": alumni.user.last_name,
                 "email": alumni.user.email,
+                "username" : alumni.user.username,
+                "location" : alumni.user.location,
                 "company_name": alumni.company_name,
             }
             alumni_list.append(alumni_info)
@@ -53,11 +55,16 @@ class Alumni(models.Model):
     
     @classmethod
     def get_alumni_info_by_id(self, alumni_id):
-        alumni = Alumni.objects.get(id=alumni_id)
+        try: 
+            alumni = Alumni.objects.get(id=alumni_id)
+        except Alumni.DoesNotExist:
+            return None 
         alumni_info = {
                 "alumni_id": alumni.id,
                 "first_name": alumni.user.first_name,
                 "last_name": alumni.user.last_name,
+                "email": alumni.user.email,
+                "username" : alumni.user.username,
                 "location": alumni.user.location, 
                 "email": alumni.user.email,
                 "company_name": alumni.company_name,
@@ -87,6 +94,7 @@ class Student(models.Model):
                 "first_name" : student.user.first_name, 
                 "last_name" : student.user.last_name, 
                 "email" : student.user.email, 
+                "username" : student.user.username,
                 "location" : student.user.location, 
                 "school": student.school,
                 "year_in_school" : student.year_in_school, 
@@ -100,12 +108,16 @@ class Student(models.Model):
 
     @classmethod
     def get_student_info_by_id(self, student_id):
-        student = Student.objects.get(id = student_id)
+        try: 
+            student = Student.objects.get(id = student_id)
+        except Student.DoesNotExist:
+            return None 
         student_info = {
                 "student.id" : student.id,
                 "first_name" : student.user.first_name, 
                 "last_name" : student.user.last_name, 
                 "email" : student.user.email, 
+                "username" : student.user.username,
                 "location" : student.user.location, 
                 "school": student.school,
                 "year_in_school" : student.year_in_school, 
@@ -113,3 +125,4 @@ class Student(models.Model):
                 "graduation_year": student.graduation_year
             }
         return student_info 
+    
