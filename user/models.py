@@ -58,6 +58,7 @@ class Alumni(models.Model):
                 "alumni_id": alumni.id,
                 "first_name": alumni.user.first_name,
                 "last_name": alumni.user.last_name,
+                "location": alumni.user.location, 
                 "email": alumni.user.email,
                 "company_name": alumni.company_name,
         }
@@ -76,3 +77,39 @@ class Student(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.school}"
 
+    @classmethod
+    def get_all_student_info(self):
+        students = Student.objects.all()
+        student_list = []
+        for student in students:
+            student_info = {
+                "student.id" : student.id,
+                "first_name" : student.user.first_name, 
+                "last_name" : student.user.last_name, 
+                "email" : student.user.email, 
+                "location" : student.user.location, 
+                "school": student.school,
+                "year_in_school" : student.year_in_school, 
+                "major" : student.major, 
+                "graduation_year": student.graduation_year
+            }
+            student_list.append(student_info)
+        
+        return student_list
+    
+
+    @classmethod
+    def get_student_info_by_id(self, student_id):
+        student = Student.objects.get(id = student_id)
+        student_info = {
+                "student.id" : student.id,
+                "first_name" : student.user.first_name, 
+                "last_name" : student.user.last_name, 
+                "email" : student.user.email, 
+                "location" : student.user.location, 
+                "school": student.school,
+                "year_in_school" : student.year_in_school, 
+                "major" : student.major, 
+                "graduation_year": student.graduation_year
+            }
+        return student_info 
