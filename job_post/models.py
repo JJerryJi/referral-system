@@ -1,5 +1,5 @@
 from django.db import models
-from user.models import Alumni
+from user.models import Alumni, Student
 # Create your models here.
 
 class Job_post(models.Model):
@@ -17,9 +17,9 @@ class Job_post(models.Model):
     alumni = models.ForeignKey(Alumni, on_delete=models.CASCADE)
     job_name = models.CharField(max_length=128)
     job_company = models.CharField(max_length=64)
-    job_requirement = models.TextField(max_length=255)
-    job_description = models.TextField(max_length=255)
-    job_open_status = models.CharField(max_length=10, choices=OPENING_STATUS, default = 'acccept')
+    job_requirement = models.TextField(max_length=2000)
+    job_description = models.TextField(max_length=2000)
+    job_open_status = models.CharField(max_length=10, choices=OPENING_STATUS, default = 'accept')
     question = models.TextField(max_length=255)
     num_of_applicants = models.IntegerField(default=0)
     job_review_status = models.CharField(max_length=10, choices=REVIEWING_STATUS,  default='In-review')
@@ -53,5 +53,10 @@ class Job_post(models.Model):
             'num_of_applicants' : job_post.num_of_applicants, 
             'job_review_status' : job_post.job_review_status,
         }
-
+        
         return post_info
+    
+class Favorite_job(models.Model):
+    id = models.AutoField(primary_key=True)
+    student_id = models.IntegerField()
+    job_id = models.IntegerField()
