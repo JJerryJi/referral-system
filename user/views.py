@@ -1,44 +1,46 @@
 from django.http import JsonResponse, Http404
 from django.shortcuts import get_object_or_404
-from .models import Alumni, Student
+from .models import Alumni, Student, User
 import json
 from datetime import datetime
-from django.views import View
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from django.db import transaction
 
-USER_ATTRIBUTES_TO_INCLUDE = ['first_name', 'last_name', 'email', 'username', 'location']
+USER_ATTRIBUTES_TO_INCLUDE = ['id', 'first_name', 'last_name', 'email', 'username', 'location', 'modified_time']
 
-
-
-def get_all_alumni(request):
-    alumni_instance = Alumni()  # Create an instance of the Alumni model
-    alumni_data = alumni_instance.get_all_alumni_info(*USER_ATTRIBUTES_TO_INCLUDE, 'password') 
-    
-    response_data = {
-        "success": True,
-        "alumni": alumni_data,
-    }
-    
-    return JsonResponse(response_data, status = 200)
-
-def get_one_alumni_details(request, alumni_id):
-    alumni_info = Alumni.get_alumni_info_by_id(alumni_id, *USER_ATTRIBUTES_TO_INCLUDE)
-    if alumni_info is None:  return JsonResponse({"success": False, "error": "No Alumni data with such id is found"}, status = 404)
-    response_data = {
-        "success": True,
-        "alumni": alumni_info,
-    }
-    
-    return JsonResponse(response_data, status = 200)
-
-# update user profile here 
+# update user profile 
 def update_user_profile(user, profile_data):
     for field in profile_data.keys():
         if hasattr(user, field):
             setattr(user, field, profile_data[field])    
+    user.modified_time = datetime.now()
     user.save()
 
-# update alumni profile by its ID
-def update_alumni(request, alumni_id):
+
+class AlumniView(APIView):
+    def get(self, request, alumni_id=None):
+        if alumni_id is None:
+            alumni_instance = Alumni()  # Create an instance of the Alumni model
+            alumni_data = alumni_instance.get_all_alumni_info(*USER_ATTRIBUTES_TO_INCLUDE)
+            
+            response_data = {
+                "success": True,
+                "alumni": alumni_data,
+            }
+        else:
+            alumni_info = Alumni.get_alumni_info_by_id(alumni_id, *USER_ATTRIBUTES_TO_INCLUDE)
+            if alumni_info is None:
+                return JsonResponse({"success": False, "error": "No Alumni data with such ID is found"}, status=404)
+            
+            response_data = {
+                "success": True,
+                "alumni": alumni_info,
+            }
+        
+        return Response(response_data, status=200)
+
+    def put(self, request, alumni_id):
         try:
             alumni = get_object_or_404(Alumni, id=alumni_id)
             content_type = request.content_type
@@ -46,83 +48,122 @@ def update_alumni(request, alumni_id):
             if content_type == 'application/json':
                 data = json.loads(request.body)
             else:
-                data = {}
+                raise ValueError("Request.contetn_type is not application/json")
 
-            if 'user' in data:
-                update_user_profile(alumni.user, data['user'])
+ 
+            update_user_profile(alumni.user, data)
 
             if 'company_name' in data:
                 alumni.company_name = data['company_name']
 
             alumni.modified_time = datetime.now()
             alumni.save()
-
-            updated_alumni_info = {
-                'alumni_id': alumni.id,
-                'first_name': alumni.user.first_name,
-                'last_name': alumni.user.last_name,
-                'email': alumni.user.email,
-                'location': alumni.user.location,
-                'company_name': alumni.company_name
-            }
-            return JsonResponse({"success": True, "message": "Alumni updated successfully", "alumni": updated_alumni_info})
+               
+            return JsonResponse({
+                "success": True,
+                "message": "Alumni updated successfully", 
+                "alumni": Alumni.get_alumni_info_by_id(alumni_id, *USER_ATTRIBUTES_TO_INCLUDE),
+            })
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
 
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
 
-def get_all_student(request):
-    student_data = Student.get_all_student_info(*USER_ATTRIBUTES_TO_INCLUDE, 'password')
-    response_data = {
-        "success": True, 
-        "student": student_data
-    }    
-    return JsonResponse(response_data)
+            # Validate required fields
+            required_fields = ['last_name', 'first_name', 'email', 'username', 'location', 'role', 'company_name']
+            for field in required_fields:
+                if field not in data:
+                    return JsonResponse({"success": False, "error": f"Missing required field: {field}"}, status=400)
 
-def get_one_student_details(request, student_id):
-    student_data = Student.get_student_info_by_id(student_id, *USER_ATTRIBUTES_TO_INCLUDE)
-    if student_data is None: return Http404("No Student data with such id is found")
-    response_data = {
-        "success":True,
-        "student": student_data
-    }
-    return JsonResponse(response_data, status = 200)
+            # Use a database transaction for atomicity
+            with transaction.atomic():
 
-def update_student(request, student_id):
-    try:
-            student = get_object_or_404(Student, id=student_id)
-            content_type = request.content_type
+                if data['role'] != 'alumni':
+                    raise ValueError("Role must be 'alumni. Creation of new alumni Failed'") 
+                
+                # Create a new user instance
+                new_user = User.objects.create(
+                    last_name=data['last_name'],
+                    first_name=data['first_name'],
+                    email=data['email'],
+                    username=data['username'],
+                    location=data['location'],
+                    role=data['role']
+                )
 
-            if content_type == 'application/json':
-                data = json.loads(request.body)
-            else:
-                data = {}
+                # Create a new alumni instance associated with the user
+                new_alumni = Alumni.objects.create(
+                    user=new_user,
+                    company_name=data['company_name']
+                )
 
-            if 'user' in data:
-                update_user_profile(student.user, data['user'])
+            # return the information of the current alumni
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": "Alumni created successfully",
+                    "alumni": Alumni.get_alumni_info_by_id(new_alumni.id, *USER_ATTRIBUTES_TO_INCLUDE)
+                },
+                status=201  # 201 Created status code
+            )
 
-            if 'major' in data:
-                student.major = data['company_name']
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)  # Handle unexpected errors with a 500 status code
 
-            if 'school' in data:
-                student.school = data['school']
+    def delete(self, request, alumni_id):
+        try:
+            # Check if the alumni object exists
+            alumni = get_object_or_404(Alumni, id=alumni_id)
             
-            if 'year_in_school' in data:
-                student.year_in_school = data['year_in_school']
-            # save updated student profile in db
-            student.modified_time = datetime.now()
-            student.save()
+            # Delete the alumni object
+            alumni.delete()
+            
+            return JsonResponse({"success": True, "message": "Alumni deleted successfully"})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
 
-            updated_student_info = {
-                'student_id': student.id,
-                'first_name': student.user.first_name,
-                'last_name': student.user.last_name,
-                'email': student.user.email,
-                'location': student.user.location,
-                'major': student.major,
-                'school':student.school, 
-                'year_in_school': student.year_in_school, 
-                'modified_time' : student.modified_time
+
+class StudentView(APIView):
+    def get(self, request, student_id = None):
+        if student_id == None: 
+            student_data = Student.get_all_student_info(*USER_ATTRIBUTES_TO_INCLUDE, 'password')
+            response_data = {
+                "success": True, 
+                "student": student_data
+            }    
+            return JsonResponse(response_data)
+        else:
+            student_data = Student.get_student_info_by_id(student_id, *USER_ATTRIBUTES_TO_INCLUDE)
+            if student_data is None: return JsonResponse({"success": False, "message": "No Student data with such id is found"}, status = 404)
+            response_data = {
+                "success":True,
+                "student": student_data
             }
-            return JsonResponse({"success": True, "message": "Alumni updated successfully", "alumni": updated_student_info})
-    except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)})
+            return JsonResponse(response_data, status = 200)
+
+    def put(self, request, student_id):
+        try:
+                student = get_object_or_404(Student, id=student_id)
+                content_type = request.content_type
+
+                if content_type == 'application/json':
+                    data = json.loads(request.body)
+                else:
+                    raise ValueError("the Content type is not application/json")
+                
+                update_user_profile(student.user, data)
+                
+                # iterate over the request body
+                for key, value in data.items():
+                    if hasattr(student, key):
+                        setattr(student, key, value)
+
+                # save updated student profile in db
+                student.modified_time = datetime.now()
+                student.save()
+
+                return JsonResponse({"success": True, "message": "Student updated successfully", "alumni": Student.get_student_info_by_id(student_id, *USER_ATTRIBUTES_TO_INCLUDE)})
+        except Exception as e:
+                return JsonResponse({"success": False, "error": str(e)})
