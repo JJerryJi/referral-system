@@ -7,7 +7,9 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
 
-USER_ATTRIBUTES_TO_INCLUDE = ['id', 'first_name', 'last_name', 'email', 'username', 'location', 'modified_time']
+USER_ATTRIBUTES_TO_INCLUDE = ['id', 'first_name', 'last_name', 'email', 'username', 'location']
+
+REGISTRATION_REQUIRED_FEILD = ['first_name', 'last_name', 'email', 'username', 'location', 'password']
 
 # update user profile 
 def update_user_profile(user, profile_data):
@@ -53,9 +55,11 @@ class AlumniView(APIView):
  
             update_user_profile(alumni.user, data)
 
-            if 'company_name' in data:
-                alumni.company_name = data['company_name']
-
+            for key, value in data.items():
+                if hasattr(alumni, key):
+                        setattr(alumni, key, value)
+            
+            # change the modified time 
             alumni.modified_time = datetime.now()
             alumni.save()
                
@@ -72,7 +76,7 @@ class AlumniView(APIView):
             data = json.loads(request.body)
 
             # Validate required fields
-            required_fields = ['last_name', 'first_name', 'email', 'username', 'location', 'role', 'company_name']
+            required_fields = REGISTRATION_REQUIRED_FEILD + ['company_name']
             for field in required_fields:
                 if field not in data:
                     return JsonResponse({"success": False, "error": f"Missing required field: {field}"}, status=400)
@@ -89,6 +93,7 @@ class AlumniView(APIView):
                     first_name=data['first_name'],
                     email=data['email'],
                     username=data['username'],
+                    password=data['password'],
                     location=data['location'],
                     role=data['role']
                 )
@@ -116,10 +121,10 @@ class AlumniView(APIView):
         try:
             # Check if the alumni object exists
             alumni = get_object_or_404(Alumni, id=alumni_id)
-            
+            alumni.user.delete()
             # Delete the alumni object
             alumni.delete()
-            
+
             return JsonResponse({"success": True, "message": "Alumni deleted successfully"})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=500)
@@ -167,3 +172,63 @@ class StudentView(APIView):
                 return JsonResponse({"success": True, "message": "Student updated successfully", "alumni": Student.get_student_info_by_id(student_id, *USER_ATTRIBUTES_TO_INCLUDE)})
         except Exception as e:
                 return JsonResponse({"success": False, "error": str(e)})
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body)
+
+            # Validate required fields
+            required_fields = REGISTRATION_REQUIRED_FEILD + ['password']
+            for field in required_fields:
+                if field not in data:
+                    return JsonResponse({"success": False, "error": f"Missing required field: {field}"}, status=400)
+                
+
+            with transaction.atomic():
+                if data['role'] != 'student':
+                    raise ValueError("Role must be student. Creation of new student Failed'") 
+                
+                # Create a new user instance
+                new_user = User.objects.create(
+                    last_name=data['last_name'],
+                    first_name=data['first_name'],
+                    email=data['email'],
+                    username=data['username'],
+                    password=data['password'],
+                    location=data['location'],
+                    role=data['role']
+                )
+
+                # Create a new alumni instance associated with the user
+                new_student = Student.objects.create(
+                    user = new_user,
+                    school=data['school'],
+                    year_in_school=data['year_in_school'],
+                    major=data['major'],
+                    graduation_year=data['graduation_year'],
+                )
+
+            # return the information of the current alumni
+            return JsonResponse(
+                {
+                    "success": True,
+                    "message": "Student created successfully",
+                    "alumni": Student.get_student_info_by_id(new_student.id, *USER_ATTRIBUTES_TO_INCLUDE)
+                },
+                status=201  # 201 Created status code
+            )           
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status = 500)
+        
+    
+    def delete(self, request, student_id):
+        try:
+            # Check if the alumni object exists
+            student = get_object_or_404(Student, id=student_id)
+            student.user.delete()
+            # Delete the alumni object
+            student.delete()
+
+            return JsonResponse({"success": True, "message": "Student deleted successfully"})
+        except Exception as e:
+            return JsonResponse({"success": False, "error": str(e)}, status=500)
