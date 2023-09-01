@@ -32,19 +32,7 @@ class Job_post(models.Model):
         job_lists = []
 
         for post in all_posts:
-            post_info = {
-                'job_id' : post.id, 
-                'alumni_id' : post.alumni.id,
-                'job_name': post.job_name,
-                'job_company' : post.job_company,
-                'job_requirement' : post.job_requirement, 
-                'job_description' : post.job_description,
-                'job_open_status' : post.job_open_status,
-                'job_question' : post.question, 
-                'num_of_applicants' : post.num_of_applicants, 
-                'job_review_status' : post.job_review_status,
-            }
-            job_lists.append(post_info)
+            job_lists.append(cls.get_one_post_by_id(post.id))
         return job_lists
     
     @classmethod
