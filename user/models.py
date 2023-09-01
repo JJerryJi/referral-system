@@ -35,8 +35,8 @@ class Alumni(models.Model):
         return f"{self.user.username} - {self.company_name}"
     
     @classmethod
-    def get_all_alumni_info(self):
-        all_alumni = Alumni.objects.all()
+    def get_all_alumni_info(cls):
+        all_alumni = cls.objects.all()
         alumni_list = []
         
         for alumni in all_alumni:
@@ -54,10 +54,10 @@ class Alumni(models.Model):
         return alumni_list
     
     @classmethod
-    def get_alumni_info_by_id(self, alumni_id):
+    def get_alumni_info_by_id(cls, alumni_id):
         try: 
-            alumni = Alumni.objects.get(id=alumni_id)
-        except Alumni.DoesNotExist:
+            alumni = cls.objects.get(id=alumni_id)
+        except cls.DoesNotExist:
             return None 
         alumni_info = {
                 "alumni_id": alumni.id,
@@ -107,10 +107,10 @@ class Student(models.Model):
     
 
     @classmethod
-    def get_student_info_by_id(self, student_id):
+    def get_student_info_by_id(cls, student_id):
         try: 
-            student = Student.objects.get(id = student_id)
-        except Student.DoesNotExist:
+            student = cls.objects.get(id = student_id)
+        except cls.DoesNotExist:
             return None 
         student_info = {
                 "student.id" : student.id,

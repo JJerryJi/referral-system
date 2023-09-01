@@ -27,8 +27,8 @@ class Job_post(models.Model):
     modified_time = models.DateTimeField(auto_now=True)
 
     @classmethod
-    def get_all_post_info(self):
-        all_posts = Job_post.objects.all()
+    def get_all_post_info(cls):
+        all_posts = cls.objects.all()
         job_lists = []
 
         for post in all_posts:
@@ -46,3 +46,24 @@ class Job_post(models.Model):
             }
             job_lists.append(post_info)
         return job_lists
+    
+    @classmethod
+    def get_one_post_by_id(cls, job_id):
+        try: 
+            job_post = cls.objects.get(id=job_id)
+        except Job_post.DoesNotExist:
+            return None 
+        post_info = {
+            'job_id' : job_post.id, 
+            'alumni_id' : job_post.alumni.id,
+            'job_name': job_post.job_name,
+            'job_company' : job_post.job_company,
+            'job_requirement' : job_post.job_requirement, 
+            'job_description' : job_post.job_description,
+            'job_open_status' : job_post.job_open_status,
+            'job_question' : job_post.question, 
+            'num_of_applicants' : job_post.num_of_applicants, 
+            'job_review_status' : job_post.job_review_status,
+        }
+
+        return post_info
