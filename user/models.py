@@ -35,41 +35,40 @@ class Alumni(models.Model):
         return f"{self.user.username} - {self.company_name}"
     
     @classmethod
-    def get_all_alumni_info(cls):
+    def get_all_alumni_info(cls, *args):
         all_alumni = cls.objects.all()
         alumni_list = []
         
+        # for each alumni, call get_alumni_info_by_id
         for alumni in all_alumni:
-            alumni_info = {
-                "alumni_id": alumni.id,
-                "first_name": alumni.user.first_name,
-                "last_name": alumni.user.last_name,
-                "email": alumni.user.email,
-                "username" : alumni.user.username,
-                "location" : alumni.user.location,
-                "company_name": alumni.company_name,
-            }
+            alumni_info = cls.get_alumni_info_by_id(alumni.id, *args)
             alumni_list.append(alumni_info)
         
         return alumni_list
     
     @classmethod
-    def get_alumni_info_by_id(cls, alumni_id):
+    def get_alumni_info_by_id(cls, alumni_id, *args):
         try: 
             alumni = cls.objects.get(id=alumni_id)
         except cls.DoesNotExist:
             return None 
+        
         alumni_info = {
-                "alumni_id": alumni.id,
-                "first_name": alumni.user.first_name,
-                "last_name": alumni.user.last_name,
-                "email": alumni.user.email,
-                "username" : alumni.user.username,
-                "location": alumni.user.location, 
-                "email": alumni.user.email,
-                "company_name": alumni.company_name,
+            "alumni_id": alumni.id,
         }
+        user_table_info  = {}
+        user_object = alumni.user
+        
+        for attribute in args:
+            if hasattr(user_object, attribute):
+                user_table_info[attribute] = getattr(user_object, attribute)
+
+        alumni_info['user'] = user_table_info
+        alumni_info['company_name'] = alumni.company_name
+        alumni_info['modified_time'] = alumni.modified_time
+        alumni_info['created_time'] = alumni.created_time
         return alumni_info
+
 
 class Student(models.Model):
     id = models.AutoField(primary_key=True)
@@ -85,44 +84,36 @@ class Student(models.Model):
         return f"{self.user.username} - {self.school}"
 
     @classmethod
-    def get_all_student_info(self):
-        students = Student.objects.all()
+    def get_all_student_info(cls, *args):
+        students = cls.objects.all()
         student_list = []
+
         for student in students:
-            student_info = {
-                "student.id" : student.id,
-                "first_name" : student.user.first_name, 
-                "last_name" : student.user.last_name, 
-                "email" : student.user.email, 
-                "username" : student.user.username,
-                "location" : student.user.location, 
-                "school": student.school,
-                "year_in_school" : student.year_in_school, 
-                "major" : student.major, 
-                "graduation_year": student.graduation_year
-            }
+            student_info = cls.get_student_info_by_id(student.id, *args)
             student_list.append(student_info)
         
         return student_list
     
 
     @classmethod
-    def get_student_info_by_id(cls, student_id):
+    def get_student_info_by_id(cls, student_id, *args):
         try: 
             student = cls.objects.get(id = student_id)
         except cls.DoesNotExist:
             return None 
         student_info = {
+                "user": {}, 
                 "student.id" : student.id,
-                "first_name" : student.user.first_name, 
-                "last_name" : student.user.last_name, 
-                "email" : student.user.email, 
-                "username" : student.user.username,
-                "location" : student.user.location, 
                 "school": student.school,
                 "year_in_school" : student.year_in_school, 
                 "major" : student.major, 
                 "graduation_year": student.graduation_year
             }
+        user_info = {}
+        for attribute in args:
+            if hasattr(student.user, attribute): 
+                user_info[attribute] = getattr(student.user, attribute)
+        
+        student_info['user'] = user_info
         return student_info 
     

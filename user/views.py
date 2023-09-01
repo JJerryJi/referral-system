@@ -5,11 +5,13 @@ import json
 from datetime import datetime
 from django.views import View
 
+USER_ATTRIBUTES_TO_INCLUDE = ['first_name', 'last_name', 'email', 'username', 'location']
+
 
 
 def get_all_alumni(request):
     alumni_instance = Alumni()  # Create an instance of the Alumni model
-    alumni_data = alumni_instance.get_all_alumni_info()  # Call the method to get alumni info
+    alumni_data = alumni_instance.get_all_alumni_info(*USER_ATTRIBUTES_TO_INCLUDE, 'password') 
     
     response_data = {
         "success": True,
@@ -19,7 +21,7 @@ def get_all_alumni(request):
     return JsonResponse(response_data, status = 200)
 
 def get_one_alumni_details(request, alumni_id):
-    alumni_info = Alumni().get_alumni_info_by_id(alumni_id)
+    alumni_info = Alumni.get_alumni_info_by_id(alumni_id, *USER_ATTRIBUTES_TO_INCLUDE)
     if alumni_info is None:  return JsonResponse({"success": False, "error": "No Alumni data with such id is found"}, status = 404)
     response_data = {
         "success": True,
@@ -28,20 +30,14 @@ def get_one_alumni_details(request, alumni_id):
     
     return JsonResponse(response_data, status = 200)
 
-
+# update user profile here 
 def update_user_profile(user, profile_data):
-    if 'first_name' in profile_data:
-        user.first_name = profile_data['first_name']
-    if 'last_name' in profile_data:
-        user.last_name = profile_data['last_name']
-    if 'email' in profile_data:
-        user.email = profile_data['email']
-    if 'location' in profile_data:
-        user.location = profile_data['location']
-    if 'password' in profile_data:
-        user.password = profile_data['password']
+    for field in profile_data.keys():
+        if hasattr(user, field):
+            setattr(user, field, profile_data[field])    
     user.save()
 
+# update alumni profile by its ID
 def update_alumni(request, alumni_id):
         try:
             alumni = get_object_or_404(Alumni, id=alumni_id)
@@ -58,6 +54,7 @@ def update_alumni(request, alumni_id):
             if 'company_name' in data:
                 alumni.company_name = data['company_name']
 
+            alumni.modified_time = datetime.now()
             alumni.save()
 
             updated_alumni_info = {
@@ -74,7 +71,7 @@ def update_alumni(request, alumni_id):
 
 
 def get_all_student(request):
-    student_data = Student.get_all_student_info()
+    student_data = Student.get_all_student_info(*USER_ATTRIBUTES_TO_INCLUDE, 'password')
     response_data = {
         "success": True, 
         "student": student_data
@@ -82,7 +79,7 @@ def get_all_student(request):
     return JsonResponse(response_data)
 
 def get_one_student_details(request, student_id):
-    student_data = Student.get_student_info_by_id(student_id)
+    student_data = Student.get_student_info_by_id(student_id, *USER_ATTRIBUTES_TO_INCLUDE)
     if student_data is None: return Http404("No Student data with such id is found")
     response_data = {
         "success":True,
