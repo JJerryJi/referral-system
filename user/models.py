@@ -100,7 +100,7 @@ class Student(models.Model):
         try: 
             student = cls.objects.get(id = student_id)
         except cls.DoesNotExist:
-            return None 
+            raise  
         student_info = {
                 "user": {}, 
                 "student.id" : student.id,

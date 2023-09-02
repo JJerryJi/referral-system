@@ -15,3 +15,29 @@ class Application(models.Model):
     modified_date = models.DateTimeField(auto_now=True)
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     job = models.ForeignKey(Job_post, on_delete=models.CASCADE)
+
+
+    # get the student basic info 
+    def get_student_applicant_info(self):
+        student_info = Student.get_student_info_by_id(self.student.id) 
+        if student_info is not None:
+            return student_info
+        else:
+            raise ValueError(f'get this applicant with student id {self.student.id}info failed')
+
+    # ge the current application detail 
+    def get_application_detail(self):
+        print('')
+        response = {
+                    "id": self.id, 
+                    "status": self.status, 
+                    "resume_path": self.resume_path,
+                    "linkedIn": self.linkedIn,
+                    "application_date": self.application_date,
+                    "answer": self.answer, 
+                    "modified_date": self.modified_date, 
+                    "student_id" : self.student.id, 
+                    "job_id" : self.job.id
+                    }
+
+        return response
