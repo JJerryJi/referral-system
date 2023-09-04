@@ -27,18 +27,23 @@ class Job_post(models.Model):
     modified_time = models.DateTimeField(auto_now=True)
 
     @classmethod
-    def get_all_post_info(cls):
+    def get_all_post_info(cls, admin_login=False):
         all_posts = cls.objects.all()
         job_lists = []
 
         for post in all_posts:
-            job_lists.append(cls.get_one_post_by_id(post.id))
+            cur_post = cls.get_one_post_by_id(post.id, admin_login=admin_login) 
+            job_lists.append(cur_post)
         return job_lists
     
     @classmethod
-    def get_one_post_by_id(cls, job_id):
+    def get_one_post_by_id(cls, job_id, admin_login=False):
         try: 
             job_post = cls.objects.get(id=job_id)
+            # if the job_post is not being reviewed, only return limited info
+            if not admin_login:
+                if job_post.job_review_status == 'In-review':
+                    return {"job_id": job_post.id, 'job_review_status':'In-review'}
         except Job_post.DoesNotExist:
             return None 
         post_info = {

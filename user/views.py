@@ -12,6 +12,7 @@ USER_ATTRIBUTES_TO_INCLUDE = ['id', 'first_name', 'last_name', 'email', 'usernam
 REGISTRATION_REQUIRED_FEILD = ['first_name', 'last_name', 'email', 'username', 'location', 'password']
 
 # update user profile 
+# helper function
 def update_user_profile(user, profile_data):
     for field in profile_data.keys():
         if hasattr(user, field):
