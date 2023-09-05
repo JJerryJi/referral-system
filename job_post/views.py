@@ -5,6 +5,9 @@ from rest_framework.views import APIView
 import json
 from django.db import transaction
 from user.models import Alumni, Student
+from rest_framework.authentication import TokenAuthentication
+from rest_framework.permissions import IsAuthenticated
+
 # Create your views here.
 
 class General_JobView(APIView):
@@ -26,30 +29,30 @@ class General_JobView(APIView):
             }
             return JsonResponse(response_data, status = 200)
 
-class Alumni_JobView(APIView):  
 
-    # GET METHOD IS NOT WORKING right now!
-    def get(self, request, Job_post_id): 
-        # TODO:
-        # add authorization to make sure the alumni can see all their posted job (including those under-reviewng
-        print('a' * 10)
-        if request.user.is_authenticated:
-            print('authticated')
-        else:
-            print(request.user.username)
-        # print(dir(request.user))
-
-        try: 
+class Alumni_JobView(APIView):
+    'url: http:/127.0.0.1:8000/job/api/alumni/posts/1'
+    def get(self, request, Job_post_id):
+        print(request.user)
+        try:
+            # Check if the user is authenticated
+            if request.user.is_authenticated:
+                # Get the authenticated user
+                authenticated_user = request.user
+                print(f'Authenticated User: {authenticated_user.username}')
+                 
+            # dummy code 
             # published_jobs = Job_post.objects.filter(alumni=request.user)
             published_jobs = Job_post.objects.filter(id=Job_post_id)
             post_info = [] 
             for published_job in published_jobs:
                 cur_job = Job_post.get_one_post_by_id(Job_post_id, admin_login=True)
                 post_info.append(cur_job)
-            response_data = {
+
+                response_data = {
                     "success": True,
                     "job_post": post_info,
-            }
+                }
             return JsonResponse(response_data, status = 200)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status = 500)

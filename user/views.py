@@ -73,6 +73,19 @@ class AlumniView(APIView):
             return JsonResponse({"success": False, "error": str(e)})
 
     def post(self, request):
+        '''
+        @request: 
+        {
+            "first_name": 
+            "last_name":
+            "role": "alumni" (Has to match this) 
+            "email"
+            "username":
+            "password":
+            "location":
+            "company_name":
+        }
+        '''
         try:
             data = json.loads(request.body)
 
@@ -86,7 +99,7 @@ class AlumniView(APIView):
             with transaction.atomic():
 
                 if data['role'] != 'alumni':
-                    raise ValueError("Role must be 'alumni. Creation of new alumni Failed'") 
+                    raise ValueError("Role must be 'alumni. So the creation of new alumni Failed'") 
                 
                 # Create a new user instance
                 new_user = User.objects.create(
@@ -175,6 +188,19 @@ class StudentView(APIView):
                 return JsonResponse({"success": False, "error": str(e)})
 
     def post(self, request):
+        '''
+        @request: 
+        {
+            "first_name": 
+            "last_name":
+            "role": "student" (Has to match this) 
+            "email"
+            "username":
+            "password":
+            "location":
+            "company_name":
+        }
+        '''
         try:
             data = json.loads(request.body)
 

@@ -2,26 +2,21 @@ from django.db import models
 
 # Create your models here.
 
-from django.db import models
+from django.contrib.auth.models import AbstractUser
 
-class User(models.Model):
+class User(AbstractUser):
     ROLES = [
         ('student', 'Student'),
         ('alumni', 'Alumni'),
     ]
-    id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=32, null=False, blank=False)
-    email = models.EmailField(unique=True, null=False, blank=False)
-    password = models.CharField(max_length=32, null=False, blank=False)
     role = models.CharField(max_length=10, choices=ROLES, null=False, blank=False)
-    first_name = models.CharField(max_length=32, null=False, blank=False)
-    last_name = models.CharField(max_length=32, null=False, blank=False)
     location = models.CharField(max_length=255, null=False, blank=False)
     created_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.username
+
 
 
 class Alumni(models.Model):
