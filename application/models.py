@@ -3,7 +3,7 @@ from user.models import Student
 from job_post.models import Job_post
 
 class Application(models.Model):
-    STATUS_CHOICES = [('In Progress', 'application staus in progress'), 
+    STATUS_CHOICES = [('In Progress', 'application in progress'), 
               ('Selected', 'application is selected'),
               ('Not-moving-forward', 'application is not selected')]
     id = models.AutoField(primary_key=True)
@@ -27,7 +27,6 @@ class Application(models.Model):
 
     # ge the current application detail 
     def get_application_detail(self):
-        print('')
         response = {
                     "id": self.id, 
                     "status": self.status, 

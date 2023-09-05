@@ -26,6 +26,8 @@ class Job_post(models.Model):
     created_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
 
+    def __str__(self) -> str:
+        return str(self.job_name) + ' at ' + str(self.job_company)
     @classmethod
     def get_all_post_info(cls, admin_login=False):
         all_posts = cls.objects.all()
@@ -65,3 +67,19 @@ class Favorite_job(models.Model):
     id = models.AutoField(primary_key=True)
     student_id = models.IntegerField()
     job_id = models.IntegerField()
+
+    def get_one_favorite_job(self):
+        response = {
+            "id" : self.id, 
+            "student_id" : self.student_id, 
+            "job_id" : self.job_id
+        }
+        return response
+    
+    @classmethod
+    def get_all_favorite_jobs(self):
+        all_fav_jobs = Favorite_job.objects.all()
+        list_fav_jobs = []
+        for fav_job in all_fav_jobs:
+            list_fav_jobs.append(fav_job.get_one_favorite_job())
+        return list_fav_jobs

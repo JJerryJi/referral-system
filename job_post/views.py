@@ -1,10 +1,10 @@
 from django.shortcuts import render
 from django.http import JsonResponse
-from .models import Job_post
+from .models import Job_post, Favorite_job
 from rest_framework.views import APIView
 import json
 from django.db import transaction
-from user.models import Alumni
+from user.models import Alumni, Student
 # Create your views here.
 
 class General_JobView(APIView):
@@ -31,9 +31,17 @@ class Alumni_JobView(APIView):
     # GET METHOD IS NOT WORKING right now!
     def get(self, request, Job_post_id): 
         # TODO:
-        # add authorization to make sure the alumni can see all their posted job (including those under-reviewng)
+        # add authorization to make sure the alumni can see all their posted job (including those under-reviewng
+        print('a' * 10)
+        if request.user.is_authenticated:
+            print('authticated')
+        else:
+            print(request.user.username)
+        # print(dir(request.user))
+
         try: 
-            published_jobs = Job_post.objects.filter(alumni=request.user)
+            # published_jobs = Job_post.objects.filter(alumni=request.user)
+            published_jobs = Job_post.objects.filter(id=Job_post_id)
             post_info = [] 
             for published_job in published_jobs:
                 cur_job = Job_post.get_one_post_by_id(Job_post_id, admin_login=True)
@@ -185,3 +193,80 @@ class Admin_JobView(APIView):
             }
             return JsonResponse(response_data, status = 200)
         
+    def delete(self, request, Job_post_id):
+        try: 
+            Job_post.objects.get(id=Job_post_id).delete()
+            return JsonResponse({'success':True, 'message': f'The deletion of the Job Post with ID #{Job_post_id} success!'})
+        except Job_post.DoesNotExist:
+            return JsonResponse({'success':False, 'error': f"This Job post with ID #{Job_post_id} does not exist"})
+        except Exception as e:
+            return JsonResponse({'success':False, 'error':str(e)})
+
+class Favorite_JobView(APIView):
+    def get(self, request, favorite_job_id=None):
+        if favorite_job_id is None:
+            try: 
+                response = {
+                    'success': True,
+                    'message': 'Here is all views of fav_table info', 
+                    'favorite_jobs': Favorite_job.get_all_favorite_jobs()
+                }
+                return JsonResponse(response)
+            except Exception as e:
+                return JsonResponse({'success':False, "error": str(e)})
+        else:
+            # TODO:
+            # Add authorization here ... 
+            try: 
+                fav_job = Favorite_job.objects.get(id = favorite_job_id)
+                response = {
+                    'success': True, 
+                    'message': 'one specific favorite_table info',
+                    'favorite_jobs' : fav_job.get_one_favorite_job()
+                }
+                return JsonResponse(response)
+            except Favorite_job.DoesNotExist:
+                return JsonResponse({'success': False, 'error': f'The favorite_job with # {favorite_job_id} does not exist.'})
+            except Exception as e: 
+                return JsonResponse({'success':False, "error": str(e)})
+        
+    def delete(self, request, favorite_job_id):
+        # TODO: add authorization
+        try:
+            fav_job = Favorite_job.objects.get(id=favorite_job_id)
+            fav_job.delete()
+            return JsonResponse({'success': True, 'error': f'The favorite_job with # {favorite_job_id} is deleted.'})
+        except Favorite_job.DoesNotExist:
+            return JsonResponse({"success": False, 'error': f'The favorite_job with ID {favorite_job_id} does not exist.'})
+        except Exception as e:
+            return JsonResponse({"success": False, 'error': str(e)}) 
+    
+    def post(self, request):
+        '''
+        @request:
+        {
+        student_id: Integer, 
+        job_id: Integer
+        }
+        '''
+        try: 
+            student_id = request.data.get('student_id')
+            job_id = request.data.get('job_id')
+            # make sure input is valid
+            student = Student.objects.get(id = student_id)
+            job = Job_post.objects.get(id = job_id)
+
+            if Favorite_job.objects.filter(student_id=student_id, job_id=job_id).first():
+                raise ValueError('You have already marked this job as saved! So you cannot save it again!')
+            with transaction.atomic():
+                Favorite_job.objects.create(
+                    student_id = student_id, 
+                    job_id = job_id
+                )
+            return JsonResponse({'success':False, 'message': "The new favorite_job is created!"})
+        except Job_post.DoesNotExist:
+            return JsonResponse({'success': False, 'error': f'The job post with # {job_id} does not exist.'})
+        except Student.DoesNotExist:
+            return JsonResponse({'success': False, 'error': f'The Student Profile  with # {student_id} does not exist.'})
+        except Exception as e: 
+            return JsonResponse({"success": False, 'error': str(e)}) 

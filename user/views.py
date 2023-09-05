@@ -197,7 +197,7 @@ class StudentView(APIView):
                     username=data['username'],
                     password=data['password'],
                     location=data['location'],
-                    role=data['role']
+                    role=data['role'],
                 )
 
                 # Create a new alumni instance associated with the user
@@ -207,6 +207,7 @@ class StudentView(APIView):
                     year_in_school=data['year_in_school'],
                     major=data['major'],
                     graduation_year=data['graduation_year'],
+                    degree=data['degree'],
                 )
 
             # return the information of the current alumni

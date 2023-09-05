@@ -10,13 +10,13 @@ class User(models.Model):
         ('alumni', 'Alumni'),
     ]
     id = models.AutoField(primary_key=True)
-    username = models.CharField(max_length=32)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=32)
-    role = models.CharField(max_length=10, choices=ROLES)
-    first_name = models.CharField(max_length=32)
-    last_name = models.CharField(max_length=32)
-    location = models.CharField(max_length=255)
+    username = models.CharField(max_length=32, null=False, blank=False)
+    email = models.EmailField(unique=True, null=False, blank=False)
+    password = models.CharField(max_length=32, null=False, blank=False)
+    role = models.CharField(max_length=10, choices=ROLES, null=False, blank=False)
+    first_name = models.CharField(max_length=32, null=False, blank=False)
+    last_name = models.CharField(max_length=32, null=False, blank=False)
+    location = models.CharField(max_length=255, null=False, blank=False)
     created_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
 
@@ -26,13 +26,13 @@ class User(models.Model):
 
 class Alumni(models.Model):
     id = models.AutoField(primary_key=True)
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    company_name = models.CharField(max_length=255)
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=False, blank=False)
+    company_name = models.CharField(max_length=255, null=False, blank=False)
     created_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return f"{self.user.username} - {self.company_name}"
+        return str(self.user.username)
     
     @classmethod
     def get_all_alumni_info(cls, *args):
@@ -69,15 +69,22 @@ class Alumni(models.Model):
         alumni_info['created_time'] = alumni.created_time
         return alumni_info
 
-
+    class Meta:
+        verbose_name_plural = 'Alumni'
+        
 class Student(models.Model):
+    DEGREES = [
+        ('BS', 'Bacholor of Science'),
+        ('MS', 'Master of Science')
+    ]
     id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    school = models.CharField(max_length=32)
+    school = models.CharField(max_length=32, null=False, blank=False)
     year_in_school = models.PositiveIntegerField()
-    major = models.CharField(max_length=32)
+    major = models.CharField(max_length=32, null=False, blank=False)
+    degree = models.CharField(max_length=3, choices=DEGREES)
     graduation_year = models.DateTimeField()
-    created_time = models.DateTimeField(auto_now_add=True)
+    created_time = models.DateTimeField(auto_now_add=True, null=False, blank=False)
     modified_time = models.DateTimeField(auto_now=True)
 
     def __str__(self):
