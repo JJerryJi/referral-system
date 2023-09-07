@@ -10,7 +10,9 @@ from django.contrib.auth.hashers import make_password
 
 USER_ATTRIBUTES_TO_INCLUDE = ['id', 'first_name', 'last_name', 'email', 'username', 'location']
 
-REGISTRATION_REQUIRED_FEILD = ['first_name', 'last_name', 'email', 'username', 'location', 'password']
+REGISTRATION_REQUIRED_FIELD = ['first_name', 'last_name', 'email', 'username', 'location', 'password']
+ALUMNI_REQUIRED_FIELD = ['company']
+STUDENT_REQUIRED_FIELD = ['password', 'major', 'degree', 'graduation_year']
 
 # update user profile 
 # helper function
@@ -28,7 +30,7 @@ class AlumniView(APIView):
             if alumni_id is None:
                 # only the authenticated superuser can view profile 
                 if not request.user.is_superuser:
-                    raise ValueError('You cannot view this page, because you are the superuser. Only the admin can all alumni profiles')
+                    raise ValueError('You cannot view this page, because you are not the superuser. Only the admin can all alumni profiles')
                 alumni_data = Alumni.get_all_alumni_info(*USER_ATTRIBUTES_TO_INCLUDE)
                 
                 response_data = {
@@ -62,9 +64,11 @@ class AlumniView(APIView):
             update_user_profile(alumni.user, data)
 
             for key, value in data.items():
+                if key == 'role':
+                    raise PermissionError("You cannot change the role! ")
                 if hasattr(alumni, key):
-                        setattr(alumni, key, value)
-            
+                    setattr(alumni, key, value)
+           
             # change the modified time 
             alumni.modified_time = datetime.now()
             alumni.save()
@@ -95,14 +99,13 @@ class AlumniView(APIView):
             data = json.loads(request.body)
 
             # Validate required fields
-            required_fields = REGISTRATION_REQUIRED_FEILD + ['company_name']
+            required_fields = USER_ATTRIBUTES_TO_INCLUDE + ALUMNI_REQUIRED_FIELD
             for field in required_fields:
                 if field not in data:
                     return JsonResponse({"success": False, "error": f"Missing required field: {field}"}, status=400)
 
             # Use a database transaction for atomicity
             with transaction.atomic():
-
                 if data['role'] != 'alumni':
                     raise ValueError("Role must be 'alumni. So the creation of new alumni Failed'") 
                 
@@ -191,6 +194,8 @@ class StudentView(APIView):
                 
                 # iterate over the request body
                 for key, value in data.items():
+                    if key == 'role':
+                        raise PermissionError("You cannot change the role! ")
                     if hasattr(student, key):
                         setattr(student, key, value)
 
@@ -198,9 +203,9 @@ class StudentView(APIView):
                 student.modified_time = datetime.now()
                 student.save()
 
-                return JsonResponse({"success": True, "message": "Student updated successfully", "alumni": Student.get_student_info_by_id(student_id, *USER_ATTRIBUTES_TO_INCLUDE)})
+                return JsonResponse({"success": True, "message": "Student updated successfully", "alumni": Student.get_student_info_by_id(student_id, *USER_ATTRIBUTES_TO_INCLUDE)}, status=200)
         except Exception as e:
-                return JsonResponse({"success": False, "error": str(e)})
+                return JsonResponse({"success": False, "error": str(e)}, status=500)
 
     def post(self, request):
         '''
@@ -229,7 +234,7 @@ class StudentView(APIView):
         try:
             data = json.loads(request.body)
             # Validate required fields
-            required_fields = REGISTRATION_REQUIRED_FEILD + ['password', 'major', 'degree', 'graduation_year']
+            required_fields = USER_ATTRIBUTES_TO_INCLUDE + STUDENT_REQUIRED_FIELD
             for field in required_fields:
                 if field not in data:
                     return JsonResponse({"success": False, "error": f"Missing required field: {field}"}, status=400)
