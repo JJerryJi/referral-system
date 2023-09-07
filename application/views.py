@@ -29,9 +29,9 @@ class ApplicationView(APIView):
             # TODO: need to authorize request.user is a student or superuser
             try:
                 if request.user.is_anonymous:
-                    raise ValueError('You are not authorized to post an application. Please sign in.')
+                    raise PermissionDenied('You are not authorized to post an application. Please sign in.')
                 if request.user.role == 'alumni':
-                    raise ValueError('You are not allowed to submit an application as Alumni')
+                    raise ValueError('Alumni are not allowed to submit an application for a job')
                 student_applicant = Student.objects.get(user=request.user)
             except Student.DoesNotExist:
                 raise ValueError(
@@ -89,7 +89,9 @@ class ApplicationView(APIView):
             application.save()
 
             return JsonResponse({'success': True, 'message': 'Application created successfully.'}, status=201)
-
+        
+        except PermissionDenied as e: 
+            return JsonResponse({'success': False, "error": f"An error occurred: {str(e)}"}, status=401)
         except Exception as e:
             return JsonResponse({'success': False, "error": f"An error occurred: {str(e)}"}, status=500)
 
@@ -98,7 +100,6 @@ class ApplicationView(APIView):
             if application_id is None:
                 # for superuser: return all applications 
                 if request.user.is_superuser:
-                    # raise ValueError('You are not authorized to view all applications, because you are not superuser.')
                     application_list = []
                     applications = Application.objects.all()
                     for application in applications:
@@ -114,7 +115,7 @@ class ApplicationView(APIView):
                     applications = Application.objects.all()
                     application_info =[]
                     for app in applications:
-                    #Authorization: Check if the logged-in user is the alumni who posted the job
+                    # Authorization: Check if the logged-in user is the alumni who posted the job
                         if request.user == app.job.alumni.user:
                             application_info.append(app.get_application_detail())
                     response = {
@@ -124,7 +125,7 @@ class ApplicationView(APIView):
                     }
                     return JsonResponse(response, status=200)
                 else:
-                    return JsonResponse({'success': False, 'error': 'You cannot view all applications. Permission Denied'})
+                    raise PermissionDenied('You cannot view all applications as student user (or anonymous user). Permission Denied')
             
             else:
                 application = Application.objects.get(id=application_id)
@@ -132,7 +133,7 @@ class ApplicationView(APIView):
                 if request.user == application.student.user or request.user.is_superuser or request.user == application.job.alumni.user:
                     pass
                 else:
-                    raise ValueError('You are not authorized to view this application. Please authorize yourself.')
+                    raise PermissionDenied('You are not authorized to view this application. Please authorize yourself.')
 
                 response = {
                     'success': True,
@@ -140,11 +141,11 @@ class ApplicationView(APIView):
                     'application': application.get_application_detail()
                 }
                 return JsonResponse(response, status=200)
+        except PermissionDenied as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=401)
         except Application.DoesNotExist:
-            # Handle the case where the application is not found
             return JsonResponse({'success': False, 'error': f'Application with this ID #{application_id} does not exist.'}, status=404)
         except Exception as e:
-            # Handle unexpected exceptions
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
 
@@ -169,7 +170,7 @@ class ApplicationView(APIView):
 
             # Check the condition of changing an application
             if request.user.is_anonymous:
-                raise PermissionDenied( 'You are not authorized to change this application, please log in first')
+                raise PermissionDenied('You are not authorized to change this application, please log in first')
             elif application.status != 'In Progress' and not request.user.is_superuser:
                 raise ValueError(
                     'You are not authorized to change this application because the decision is finalized')
@@ -181,7 +182,7 @@ class ApplicationView(APIView):
             if application.student.user == request.user or request.user.is_superuser:
                 # Iterate through the request data and update application attributes
                 print(dir(request))
-                print(request.content_type)
+                print(request.data)
                 for key, value in request.data.items():
                     if key == 'resume':
                         updated_pdf = request.FILES.get('resume')
@@ -234,7 +235,7 @@ class ApplicationView(APIView):
         except Application.DoesNotExist:
             return JsonResponse({'success': False, 'error': f'Application with this ID #{application_id} does not exist.'}, status=404)
         except PermissionDenied as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=403)
+            return JsonResponse({'success': False, 'error': str(e)}, status=401)
         except Exception as e:
             traceback.print_exc()
             return JsonResponse({'success': False, 'error': str(e)}, status = 500)

@@ -5,8 +5,7 @@ from rest_framework.views import APIView
 import json
 from django.db import transaction
 from user.models import Alumni, Student
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from django.core.exceptions import PermissionDenied
 
 # Create your views here.
 
@@ -87,6 +86,7 @@ class JobView(APIView):
             data = json.loads(request.body)
 
             
+            # find the alumni from the requst.user
             alumnus = Alumni.objects.all()
             alumni = None
             for alm in alumnus:
@@ -117,6 +117,7 @@ class JobView(APIView):
     def put(self, request, Job_post_id):
         '''
         @request:
+        for authenticated alumni: 
         {
             "job_name": "String" (optional),
             "job_company": "String" (optional),
@@ -131,10 +132,10 @@ class JobView(APIView):
             job_post = Job_post.objects.get(id=Job_post_id)
              
             if request.user.is_authenticated:
-                if request.user.id != job_post.alumni.user.id and not request.user.is_superuser:
-                    raise ValueError('You are not authorized to make this change, because this is not your post!')
+                if request.user != job_post.alumni.user and not request.user.is_superuser:
+                    raise PermissionDenied('You are not authorized to make this change, because this is not your post!')
             else:
-                raise ValueError('You are not authorized to access this page. Please sign in.')
+                raise PermissionDenied('You are not authorized to access this page. Please sign in.')
         
             data = json.loads(request.body)
             for key, value in data.items():
@@ -148,8 +149,8 @@ class JobView(APIView):
         
         except Job_post.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Job Post is not found. So the update fails!'}, status = 404)
-        except ValueError as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=400)
+        except PermissionError as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=401)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
@@ -163,12 +164,14 @@ class JobView(APIView):
             elif request.user == job_post.alumni.user:
                 pass 
             else:
-                raise ValueError('You are not authorized to delete this post, because it is not your post.')
+                raise PermissionDenied('You are not authorized to delete this post, because it is not your post.')
             # delete this post in db 
             job_post.delete()
             return JsonResponse({'success': True, 'message': f"Successfully Delete Job Post # {Job_post_id}"}, status=200)
         except Job_post.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Job Post is not found. So the update fails!'}, status = 404)
+        except PermissionError as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=401)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
@@ -234,21 +237,40 @@ class Favorite_JobView(APIView):
     def get(self, request, favorite_job_id=None):
         if favorite_job_id is None:
             try: 
-                if not request.user.is_superuser:
-                    raise ValueError('Only Superuser can view all information of favorite_job info')
-                response = {
-                    'success': True,
-                    'message': 'Here is all views of fav_table info', 
-                    'favorite_jobs': Favorite_job.get_all_favorite_jobs()
-                }
-                return JsonResponse(response)
+                if not request.user.is_authenticated:
+                    raise PermissionDenied('You are not view this page. please sign in first.')
+                elif request.user.is_superuser:
+                    response = {
+                        'success': True,
+                        'message': 'Here is all views of fav_table info (from superuser)', 
+                        'favorite_jobs': Favorite_job.get_all_favorite_jobs()
+                    }
+                    return JsonResponse(response)
+                elif request.user.role == 'student':
+                    student = Student.objects.get(user=request.user)
+
+                    response = {
+                        'success': False,
+                        'message': f'Here is the view of all fav_table info associated with the student # id {student.id}',
+                        'favorite_jobs': []
+                    }
+                    for fav_job in Favorite_job.objects.all():
+                        if fav_job.student_id == student.id:
+                            response['favorite_jobs'].append(fav_job.get_one_favorite_job())
+                    return JsonResponse(response)
+                else:
+                    raise PermissionDenied('Only superuser or student can view all information of favorite_job info')
+            except Student.DoesNotExist as e:
+                return JsonResponse({'success':False, "error": f"User with id # {request.user.id} does not exist"}, status=404)
+            except PermissionDenied as e:
+                return JsonResponse({'success':False, "error": str(e)}, status=401)
             except Exception as e:
-                return JsonResponse({'success':False, "error": str(e)})
+                return JsonResponse({'success':False, "error": str(e)}, status=500)
         else:
             try: 
                 fav_job = Favorite_job.objects.get(id = favorite_job_id)
-                if request.user != Student.object.get(id = fav_job.student_id).user and not request.user.is_superuser:
-                    raise ValueError('You are not authorized to view this information, because it is your favorite_job info.')
+                if request.user != Student.objects.get(id = fav_job.student_id).user and not request.user.is_superuser:
+                    raise ValueError('You are not authorized to view this information, because it is not your favorite_job info.')
                 response = {
                     'success': True, 
                     'message': 'one specific favorite_table info',
@@ -261,15 +283,16 @@ class Favorite_JobView(APIView):
                 return JsonResponse({'success':False, "error": str(e)})
         
     def delete(self, request, favorite_job_id):
-        # TODO: add authorization
         try:
             fav_job = Favorite_job.objects.get(id=favorite_job_id)
             if request.user != Student.object.get(id = fav_job.student_id).user and not request.user.is_superuser:
-                raise ValueError('You are not authorized to view this information, because it is your favorite_job info.')
+                raise PermissionDenied('You are not authorized to view this information, because it is your favorite_job info.')
             fav_job.delete()
             return JsonResponse({'success': True, 'error': f'The favorite_job with # {favorite_job_id} is deleted.'})
         except Favorite_job.DoesNotExist:
             return JsonResponse({"success": False, 'error': f'The favorite_job with ID {favorite_job_id} does not exist.'})
+        except PermissionDenied as e:
+            return JsonResponse({'success': False, 'error': str(e)})
         except Exception as e:
             return JsonResponse({"success": False, 'error': str(e)}) 
     
@@ -290,12 +313,13 @@ class Favorite_JobView(APIView):
             
             # authorization
             if request.user.is_anonymous:
-                raise ValueError("Please sign in as an authenaticated user.")
-            elif request.user != student.user and request.user.is_superuser:
-                raise ValueError('You are not authorized to add this fav_job info')
+                raise PermissionDenied("Please sign in as an authenaticated user.")
+            elif request.user != student.user and not request.user.is_superuser:
+                raise PermissionDenied('You are not authorized to add this fav_job info')
             
+            # only one instance is allowed 
             if Favorite_job.objects.filter(student_id=student_id, job_id=job_id).first():
-                raise ValueError('You have already marked this job as saved! So you cannot save it again!')
+                raise PermissionDenied('You have already marked this job as saved! So you cannot save it again!')
             
             with transaction.atomic():
                 Favorite_job.objects.create(
@@ -307,5 +331,7 @@ class Favorite_JobView(APIView):
             return JsonResponse({'success': False, 'error': f'The job post with # {job_id} does not exist.'})
         except Student.DoesNotExist:
             return JsonResponse({'success': False, 'error': f'The Student Profile  with # {student_id} does not exist.'})
+        except PermissionDenied as e:
+            return JsonResponse({'success': False, 'error': str(e)})
         except Exception as e: 
             return JsonResponse({"success": False, 'error': str(e)}) 

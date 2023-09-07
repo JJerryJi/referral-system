@@ -21,6 +21,6 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path('user/', include('user.urls')),
     path('job/', include('job_post.urls')),
-    path('app/', include('application.urls')),
-    path('api/token', ObtainTokenView.as_view(), name = 'obtain_view'),
+    path('application/', include('application.urls')),
+    path('api/token', ObtainTokenView.as_view(), name='obtain_view'),
 ]
