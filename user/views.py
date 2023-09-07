@@ -6,6 +6,7 @@ from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
+from django.contrib.auth.hashers import make_password
 
 USER_ATTRIBUTES_TO_INCLUDE = ['id', 'first_name', 'last_name', 'email', 'username', 'location']
 
@@ -23,37 +24,41 @@ def update_user_profile(user, profile_data):
 
 class AlumniView(APIView):
     def get(self, request, alumni_id=None):
-        if alumni_id is None:
-            alumni_instance = Alumni()  # Create an instance of the Alumni model
-            alumni_data = alumni_instance.get_all_alumni_info(*USER_ATTRIBUTES_TO_INCLUDE)
+        try:
+            if alumni_id is None:
+                # only the authenticated superuser can view profile 
+                if not request.user.is_superuser:
+                    raise ValueError('You cannot view this page, because you are the superuser. Only the admin can all alumni profiles')
+                alumni_data = Alumni.get_all_alumni_info(*USER_ATTRIBUTES_TO_INCLUDE)
+                
+                response_data = {
+                    "success": True,
+                    "alumni": alumni_data,
+                }
+            else:
+                alumni_info = Alumni.get_alumni_info_by_id(alumni_id, *USER_ATTRIBUTES_TO_INCLUDE)
+                if alumni_info is None:
+                    return JsonResponse({"success": False, "error": "No Alumni data with such ID is found"}, status=404)
+                
+                response_data = {
+                    "success": True,
+                    "alumni": alumni_info,
+                }
             
-            response_data = {
-                "success": True,
-                "alumni": alumni_data,
-            }
-        else:
-            alumni_info = Alumni.get_alumni_info_by_id(alumni_id, *USER_ATTRIBUTES_TO_INCLUDE)
-            if alumni_info is None:
-                return JsonResponse({"success": False, "error": "No Alumni data with such ID is found"}, status=404)
-            
-            response_data = {
-                "success": True,
-                "alumni": alumni_info,
-            }
-        
-        return Response(response_data, status=200)
+            return Response(response_data, status=200)
+        except Exception as e:
+            return JsonResponse({'success':False, 'error' : str(e)}, status=500)
 
     def put(self, request, alumni_id):
         try:
-            alumni = get_object_or_404(Alumni, id=alumni_id)
-            content_type = request.content_type
-
-            if content_type == 'application/json':
-                data = json.loads(request.body)
-            else:
-                raise ValueError("Request.contetn_type is not application/json")
-
- 
+            # only the authenticated user can view profile 
+            if request.user.is_anonymous:
+                raise ValueError('You cannot view this page, because you do not log in.')
+            # only the specific usr can make this change
+            alumni = get_object_or_404(Alumni, id=alumni_id)     
+            if request.user.id != alumni.user.id:
+                raise ValueError('You are not authorized to change this Alumni Profile, because this is not your account.')
+            data = json.loads(request.body)
             update_user_profile(alumni.user, data)
 
             for key, value in data.items():
@@ -107,7 +112,7 @@ class AlumniView(APIView):
                     first_name=data['first_name'],
                     email=data['email'],
                     username=data['username'],
-                    password=data['password'],
+                    password=make_password(data['password']),
                     location=data['location'],
                     role=data['role']
                 )
@@ -133,45 +138,55 @@ class AlumniView(APIView):
 
     def delete(self, request, alumni_id):
         try:
-            # Check if the alumni object exists
-            alumni = get_object_or_404(Alumni, id=alumni_id)
+            alumni = Alumni.objects.get(id=alumni_id)
+            # Authorization: 
+            if request.user.id != alumni.user.id:
+                raise ValueError('You are not authorized to delete this profile, because it is not your profile')
             alumni.user.delete()
             # Delete the alumni object
             alumni.delete()
 
             return JsonResponse({"success": True, "message": "Alumni deleted successfully"})
+        except Alumni.DoesNotExist:
+            return JsonResponse({'success':False, 'error': f'This alumni profile with ID {alumni_id} does not exist.'})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
 class StudentView(APIView):
     def get(self, request, student_id = None):
-        if student_id == None: 
-            student_data = Student.get_all_student_info(*USER_ATTRIBUTES_TO_INCLUDE, 'password')
-            response_data = {
-                "success": True, 
-                "student": student_data
-            }    
-            return JsonResponse(response_data)
-        else:
-            student_data = Student.get_student_info_by_id(student_id, *USER_ATTRIBUTES_TO_INCLUDE)
-            if student_data is None: return JsonResponse({"success": False, "message": "No Student data with such id is found"}, status = 404)
-            response_data = {
-                "success":True,
-                "student": student_data
-            }
-            return JsonResponse(response_data, status = 200)
+        try: 
+            # Only admin (superuser) has the power to view all profile
+            if student_id == None: 
+                if not request.user.is_superuser:
+                    raise ValueError('Only the superuser can view all student profile. Permission Denied')
+                student_data = Student.get_all_student_info(*USER_ATTRIBUTES_TO_INCLUDE, 'password')
+                response_data = {
+                    "success": True, 
+                    "student": student_data
+                }    
+                return JsonResponse(response_data)
+            else:
+                student_data = Student.get_student_info_by_id(student_id, *USER_ATTRIBUTES_TO_INCLUDE)
+                if student_data is None: return JsonResponse({"success": False, "message": "No Student data with such id is found"}, status = 404)
+                response_data = {
+                    "success":True,
+                    "student": student_data
+                }
+                return JsonResponse(response_data, status = 200)
+        except Exception as e:
+            return JsonResponse({'success':False, 'error': str(e)}, status=500)
 
     def put(self, request, student_id):
         try:
                 student = get_object_or_404(Student, id=student_id)
-                content_type = request.content_type
-
-                if content_type == 'application/json':
-                    data = json.loads(request.body)
-                else:
-                    raise ValueError("the Content type is not application/json")
+                # authorization
+                if not request.user.is_superuser:
+                    if request.user.id != student.user.id:
+                        raise ValueError('You cannot make change to this student profile, because it is not your profile.')
                 
+                data = json.loads(request.body)
+
                 update_user_profile(student.user, data)
                 
                 # iterate over the request body
@@ -189,23 +204,32 @@ class StudentView(APIView):
 
     def post(self, request):
         '''
+        @header:
+        {
+        Authorization: Token [user-token]
+        Content-type: application/json
+        }
+
         @request: 
         {
-            "first_name": 
-            "last_name":
+            "first_name": ""
+            "last_name": ""
             "role": "student" (Has to match this) 
-            "email"
-            "username":
-            "password":
-            "location":
-            "company_name":
+            "email": ""
+            "username": ""
+            "password": ""
+            "location": "" 
+            "school": ""
+            "major": ""
+            "degree": ""
+            "graduation_year": ,
+            "year_in_school": ,
         }
         '''
         try:
             data = json.loads(request.body)
-
             # Validate required fields
-            required_fields = REGISTRATION_REQUIRED_FEILD + ['password']
+            required_fields = REGISTRATION_REQUIRED_FEILD + ['password', 'major', 'degree', 'graduation_year']
             for field in required_fields:
                 if field not in data:
                     return JsonResponse({"success": False, "error": f"Missing required field: {field}"}, status=400)
@@ -221,7 +245,7 @@ class StudentView(APIView):
                     first_name=data['first_name'],
                     email=data['email'],
                     username=data['username'],
-                    password=data['password'],
+                    password=make_password(data['password']),
                     location=data['location'],
                     role=data['role'],
                 )
@@ -251,10 +275,13 @@ class StudentView(APIView):
     
     def delete(self, request, student_id):
         try:
-            # Check if the alumni object exists
             student = get_object_or_404(Student, id=student_id)
+            if request.user.is_anonymous:
+                raise ValueError('You cannot view this page, because you do not log in.')
+            if request.user.id != student.user.id:
+                raise ValueError('You cannot delete this student profile, because it is not your account. Please log in.')
             student.user.delete()
-            # Delete the alumni object
+            # Delete the student object
             student.delete()
 
             return JsonResponse({"success": True, "message": "Student deleted successfully"})

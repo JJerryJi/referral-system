@@ -102,7 +102,7 @@ class Student(models.Model):
         try: 
             student = cls.objects.get(id = student_id)
         except cls.DoesNotExist:
-            raise  
+            raise ValueError(f"The student with ID #{student_id} does not exist")
         student_info = {
                 "user": {}, 
                 "student.id" : student.id,

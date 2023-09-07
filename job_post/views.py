@@ -31,29 +31,28 @@ class General_JobView(APIView):
 
 
 class Alumni_JobView(APIView):
-    'url: http:/127.0.0.1:8000/job/api/alumni/posts/1'
     def get(self, request, Job_post_id):
-        print(request.user)
         try:
-            # Check if the user is authenticated
+            # Authorization
             if request.user.is_authenticated:
-                # Get the authenticated user
-                authenticated_user = request.user
-                print(f'Authenticated User: {authenticated_user.username}')
-                 
-            # dummy code 
-            # published_jobs = Job_post.objects.filter(alumni=request.user)
-            published_jobs = Job_post.objects.filter(id=Job_post_id)
-            post_info = [] 
-            for published_job in published_jobs:
-                cur_job = Job_post.get_one_post_by_id(Job_post_id, admin_login=True)
-                post_info.append(cur_job)
-
-                response_data = {
+                job_post = Job_post.objects.get(id=Job_post_id)
+                if request.user.is_superuser:
+                    pass
+                elif job_post.alumni.user.id != request.user.id:
+                    raise ValueError('You are not authorized to view this page, because you are not the alumni who post this job!')
+            else:
+                raise ValueError('Please log in and authorized to visit this page.')
+            
+            cur_job = Job_post.get_one_post_by_id(Job_post_id, admin_login=True)
+            
+            response_data = {
                     "success": True,
-                    "job_post": post_info,
-                }
+                    "job_post": cur_job,
+            }
             return JsonResponse(response_data, status = 200)
+        
+        except Job_post.DoesNotExist:
+            return JsonResponse({'success': False, 'error': f"Job Post with ID #{Job_post_id} does not exist"})
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status = 500)
     
@@ -73,6 +72,12 @@ class Alumni_JobView(APIView):
         # TODO:
         # Need to be authorized as 'alumni'
         try: 
+            if request.user.is_authenticated:
+                if request.user.role == 'student':
+                    raise ValueError('Your user role is: Student. You cannot create job posts') 
+            else:
+                raise ValueError('You cannot access the page if you are not authorized. Please log in.') 
+            
             data = json.loads(request.body)
             try: 
                 alumni = Alumni.objects.get(id=data['alumni_id'])
@@ -86,7 +91,7 @@ class Alumni_JobView(APIView):
             question = data['question']
             
             with transaction.atomic(): 
-                new_job_post = Job_post.objects.create(
+                Job_post.objects.create(
                     alumni = alumni, 
                     job_name = job_name, 
                     job_company  = job_company, 
@@ -118,17 +123,26 @@ class Alumni_JobView(APIView):
 
         try: 
             job_post = Job_post.objects.get(id=Job_post_id)
-            # ... 
         except Job_post.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Job Post is not found. So the update fails!'}, status = 404)
-
+        
+        # authorization
+        try: 
+            if request.user.is_authenticated:
+                if request.user.id != job_post.alumni.user.id:
+                    raise ValueError('You are not authorized to make this change, because this is not your post!')
+            else:
+                raise ValueError('You are not authorized to access this page. Please sign in.')
+        except Exception as e:
+            return JsonResponse({'success':False, 'error': str(e)})
+        
         try:
             data = json.loads(request.body)
             for key, value in data.items():
                 if hasattr(job_post, key):
                     setattr(job_post, key, value)
                 else:
-                    raise ValueError(f'{key} does not exist in Job_post table. Update Fails')
+                    raise ValueError(f'[{key}] in json does not exist in Job_post table. Update Fails')
             job_post.save()
 
             return JsonResponse({'success': True, 'message': f'Update Job Post #{job_post.id} is successful!', 'job_post': Job_post.get_one_post_by_id(job_post.id, admin_login=True)}, status=200)

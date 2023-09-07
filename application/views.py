@@ -27,7 +27,7 @@ class Student_ApplicationView(APIView):
         }
         '''
         try:
-            # TODO: need to authorize request.user.role == 'student'
+            # TODO: need to authorize request.user is a student
             # ...
             
             # check valid student 
@@ -99,9 +99,9 @@ class Student_ApplicationView(APIView):
         try:
             application = Application.objects.get(id=application_id)
 
-            # TODO: Authorization for student:
-            # if request.user != application.student:
-            #     raise ValueError('You are not authorized to view this application, because it is not your application. Please authorize yourself.')
+            # Authorization for student:
+            if request.user != application.student.user:
+                raise ValueError('You are not authorized to view this application, because it is not your application. Please authorize yourself.')
 
             response = {
                 'success': True,
