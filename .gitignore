@@ -1,5 +1,5 @@
 db.sqlite3
 __pycache__
 migrations
-/application/resume/*
+backend/application/resume/*
 token.txt
