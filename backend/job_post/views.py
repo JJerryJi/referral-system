@@ -250,7 +250,7 @@ class Favorite_JobView(APIView):
                     student = Student.objects.get(user=request.user)
 
                     response = {
-                        'success': False,
+                        'success': True,
                         'message': f'Here is the view of all fav_table info associated with the student # id {student.id}',
                         'favorite_jobs': []
                     }

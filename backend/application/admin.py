@@ -5,7 +5,7 @@ from .models import Application
 
 @admin.register(Application)
 class ApplicationAdmin(admin.ModelAdmin):
-    list_display = ('id', 'student', 'job', 'status', 'application_date', 'answer', 'linkedIn', 'resume_path')
+    list_display = ('id', 'student', 'job', 'status', 'application_date', 'answer', 'linkedIn', 'resume_path', 'modified_date')
     list_filter = ('status', 'application_date')
     search_fields = ('student__user__username','student__user__first_name', 'student__user__last_name', 'job__job_name', 'job__job_company')
 

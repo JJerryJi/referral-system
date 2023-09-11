@@ -124,8 +124,20 @@ class ApplicationView(APIView):
                         'application': application_info
                     }
                     return JsonResponse(response, status=200)
+                elif request.user.role == 'student':
+                    applications = Application.objects.all()
+                    application_info = []
+                    for app in applications:
+                        if request.user == app.student.user:
+                            application_info.append(app.get_application_detail())
+                    response = {
+                        'success': True,
+                        'message': f'Successful get all applications submitted by you',
+                        'application': application_info
+                    }
+                    return JsonResponse(response, status=200)
                 else:
-                    raise PermissionDenied('You cannot view all applications as student user (or anonymous user). Permission Denied')
+                    raise PermissionDenied('You cannot view all applications as an anonymous user). Permission Denied')
             
             else:
                 application = Application.objects.get(id=application_id)
@@ -154,7 +166,6 @@ class ApplicationView(APIView):
         @request: 
         {
         'resume': 'PDF.file' (optional),
-        'job_id': 'Integer' (optional), 
         'linkedIn': 'url' (optional), 
         'answer' : "Char[]" (optional), 
         }
@@ -201,6 +212,7 @@ class ApplicationView(APIView):
                         setattr(application, key, value)
 
                 # Save the changes
+                application.modified_date = datetime.now()
                 application.save()
 
                 # Return the updated application data

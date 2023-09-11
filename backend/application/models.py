@@ -25,7 +25,7 @@ class Application(models.Model):
         else:
             raise ValueError(f'get this applicant with student id {self.student.id}info failed')
 
-    # ge the current application detail 
+    # get the current application detail 
     def get_application_detail(self):
         response = {
                     "id": self.id, 
