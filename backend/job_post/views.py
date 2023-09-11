@@ -319,19 +319,19 @@ class Favorite_JobView(APIView):
             
             # only one instance is allowed 
             if Favorite_job.objects.filter(student_id=student_id, job_id=job_id).first():
-                raise PermissionDenied('You have already marked this job as saved! So you cannot save it again!')
+                raise ValueError('You have already marked this job as saved! So you cannot save it again!')
             
             with transaction.atomic():
                 Favorite_job.objects.create(
                     student_id = student_id, 
                     job_id = job_id
                 )
-            return JsonResponse({'success':False, 'message': "The new favorite_job is created!"})
+            return JsonResponse({'success':True, 'message': "The new favorite_job is created!"}, status=200)
         except Job_post.DoesNotExist:
-            return JsonResponse({'success': False, 'error': f'The job post with # {job_id} does not exist.'})
+            return JsonResponse({'success': False, 'error': f'The job post with # {job_id} does not exist.'}, status=404)
         except Student.DoesNotExist:
-            return JsonResponse({'success': False, 'error': f'The Student Profile  with # {student_id} does not exist.'})
+            return JsonResponse({'success': False, 'error': f'The Student Profile  with # {student_id} does not exist.'}, status=404)
         except PermissionDenied as e:
-            return JsonResponse({'success': False, 'error': str(e)})
+            return JsonResponse({'success': False, 'error': str(e)}, status=403)
         except Exception as e: 
-            return JsonResponse({"success": False, 'error': str(e)}) 
+            return JsonResponse({"success": False, 'error': str(e)}, status=500) 

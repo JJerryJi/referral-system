@@ -110,7 +110,7 @@ class Student(models.Model):
             raise ValueError(f"The student with ID #{student_id} does not exist")
         student_info = {
                 "user": {}, 
-                "student.id" : student.id,
+                "student_id" : student.id,
                 "school": student.school,
                 "year_in_school" : student.year_in_school, 
                 "major" : student.major, 
