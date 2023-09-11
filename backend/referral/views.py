@@ -40,7 +40,6 @@ class ObtainTokenView(APIView):
             user = authenticate(username=username, password=password)
             if user is not None:
                 token, created = Token.objects.get_or_create(user=user)
-                print(dir(token))
                 token.save()
                 return Response({'token': token.key, 'expiration': token.created + self.expiration_time})  # Use 'token.key' to access the token key
         return Response({'error': 'Unauthorized user'}, status=400)
