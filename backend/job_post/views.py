@@ -166,7 +166,8 @@ class JobView(APIView):
             else:
                 raise PermissionDenied('You are not authorized to delete this post, because it is not your post.')
             # delete this post in db 
-            job_post.delete()
+            with transaction.atomic():
+                job_post.delete()
             return JsonResponse({'success': True, 'message': f"Successfully Delete Job Post # {Job_post_id}"}, status=200)
         except Job_post.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Job Post is not found. So the update fails!'}, status = 404)
@@ -227,11 +228,11 @@ class Admin_JobView(APIView):
     def delete(self, request, Job_post_id):
         try: 
             Job_post.objects.get(id=Job_post_id).delete()
-            return JsonResponse({'success':True, 'message': f'The deletion of the Job Post with ID #{Job_post_id} success!'})
+            return JsonResponse({'success':True, 'message': f'The deletion of the Job Post with ID #{Job_post_id} success!'}, status=200)
         except Job_post.DoesNotExist:
-            return JsonResponse({'success':False, 'error': f"This Job post with ID #{Job_post_id} does not exist"})
+            return JsonResponse({'success':False, 'error': f"This Job post with ID #{Job_post_id} does not exist"}, status=404)
         except Exception as e:
-            return JsonResponse({'success':False, 'error':str(e)})
+            return JsonResponse({'success':False, 'error':str(e)}, status=500)
 
 class Favorite_JobView(APIView):
     def get(self, request, favorite_job_id=None):
@@ -285,16 +286,20 @@ class Favorite_JobView(APIView):
     def delete(self, request, favorite_job_id):
         try:
             fav_job = Favorite_job.objects.get(id=favorite_job_id)
-            if request.user != Student.object.get(id = fav_job.student_id).user and not request.user.is_superuser:
-                raise PermissionDenied('You are not authorized to view this information, because it is your favorite_job info.')
+            # print(request.user)
+            # print(Student.objects.get(id = fav_job.student_id).user)
+            if request.user.is_superuser:
+                pass 
+            elif request.user != Student.objects.get(id = fav_job.student_id).user:
+                raise PermissionDenied('You are not authorized to view this information, because it is not your favorite_job info.')
             fav_job.delete()
-            return JsonResponse({'success': True, 'error': f'The favorite_job with # {favorite_job_id} is deleted.'})
+            return JsonResponse({'success': True, 'error': f'The favorite_job with # {favorite_job_id} is deleted.'}, status=200)
         except Favorite_job.DoesNotExist:
-            return JsonResponse({"success": False, 'error': f'The favorite_job with ID {favorite_job_id} does not exist.'})
+            return JsonResponse({"success": False, 'error': f'The favorite_job with ID {favorite_job_id} does not exist.'}, status=403)
         except PermissionDenied as e:
-            return JsonResponse({'success': False, 'error': str(e)})
+            return JsonResponse({'success': False, 'error': str(e)}, status=403)
         except Exception as e:
-            return JsonResponse({"success": False, 'error': str(e)}) 
+            return JsonResponse({"success": False, 'error': str(e)}, status=500) 
     
     def post(self, request):
         '''

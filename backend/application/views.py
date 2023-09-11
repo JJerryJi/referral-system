@@ -192,8 +192,6 @@ class ApplicationView(APIView):
             # for Student who post this application and superuser
             if application.student.user == request.user or request.user.is_superuser:
                 # Iterate through the request data and update application attributes
-                print(dir(request))
-                print(request.data)
                 for key, value in request.data.items():
                     if key == 'resume':
                         updated_pdf = request.FILES.get('resume')
