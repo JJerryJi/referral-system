@@ -6,29 +6,9 @@ import json
 from django.db import transaction
 from user.models import Alumni, Student
 from django.core.exceptions import PermissionDenied
+import traceback
 
 # Create your views here.
-
-class General_JobView(APIView):
-    def get(self, request, Job_post_id=None):
-        if Job_post_id == None:
-            all_posts = Job_post.get_all_post_info()
-            response_data = {
-                "success": True,
-                "job_post": all_posts,
-            }
-            return JsonResponse(response_data, status = 200)
-        # get a single post by id
-        else:
-            post = Job_post.get_one_post_by_id(Job_post_id)
-            if post is None: return JsonResponse({"succes": False, 'error':'No job with such ID exist'}, status = 404)
-            response_data = {
-                "success": True,
-                "job_post": post,
-            }
-            return JsonResponse(response_data, status = 200)
-
-
 class JobView(APIView):
     def get(self, request, Job_post_id=None):
         if Job_post_id == None:
@@ -41,7 +21,7 @@ class JobView(APIView):
                 all_posts = Job_post.objects.all()
                 job_lists = []
                 for post in all_posts:
-                    cur_post = Job_post.get_one_post_by_id(post.id, admin_login= (request.user == post.alumni.user))
+                    cur_post = Job_post.get_one_post_by_id(post.id, admin_login=(request.user == post.alumni.user))
                     job_lists.append(cur_post)
             else:
                 raise ValueError('You need to sign in to view job posts')
@@ -92,7 +72,9 @@ class JobView(APIView):
             for alm in alumnus:
                 if alm.user == request.user:
                     alumni = alm
-
+            if not alumni:
+                return JsonResponse({'success': False, "message": "You are not authorized to create new job post."}, status=403) 
+            
             job_name = data['job_name']
             job_company  = data['job_company'] 
             job_requirement = data['job_requirement']
@@ -111,6 +93,7 @@ class JobView(APIView):
             # use admin-login here just to return the updated job post 
             return JsonResponse({'success': True, 'message': 'New Job Post is created! You will be heard back from Team shortly'})
         except Exception as e:
+            traceback.print_exc()
             return JsonResponse({'success':False, 'error': str(e)}, status = 500)
         
 
@@ -149,9 +132,10 @@ class JobView(APIView):
         
         except Job_post.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Job Post is not found. So the update fails!'}, status = 404)
-        except PermissionError as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=401)
+        except PermissionDenied as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=403)
         except Exception as e:
+            traceback.print_exc()
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
         
@@ -176,63 +160,6 @@ class JobView(APIView):
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-
-class Admin_JobView(APIView):
-    # change the job_reviewing_status
-    def put(self, request, Job_post_id):
-        # TODO: Authorize the login as an admin 
-        #... 
-        ''' 
-        @request: 
-        {
-            "job_reviewing_status": 'Pass/Fail'
-        }
-        '''
-        try:
-            job_post = Job_post.objects.get(Job_post_id)
-
-            updated_status = request.data.get('job_reviewing_status')
-            if updated_status not in ['Pass', 'Fail']:
-                raise ValueError('The job_reviwing_status that you passed in is not in the possible list: "Pass" or "Fail"')
-            
-            # update the reivew_status & save
-            job_post.job_review_status =  updated_status
-            job_post.save()
-
-        except Job_post.DoesNotExist:
-            return JsonResponse({'success': False, 'error': f'This Job Post with #{Job_post_id} does not exist'}, status=404)
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
-    def get(self, request, Job_post_id=None):
-        # TODO: Authorize the login as an admin 
-        #... 
-
-        if Job_post_id == None:
-            all_posts = Job_post.get_all_post_info(admin_login=True)
-            response_data = {
-                "success": True,
-                "job_post": all_posts,
-            }
-            return JsonResponse(response_data, status = 200)
-        # get a single post by id
-        else:
-            post = Job_post.get_one_post_by_id(Job_post_id, admin_login=True)
-            if post is None: return JsonResponse({"succes": False, 'error':'No job with such ID exist'}, status = 404)
-            response_data = {
-                "success": True,
-                "job_post": post,
-            }
-            return JsonResponse(response_data, status = 200)
-        
-    def delete(self, request, Job_post_id):
-        try: 
-            Job_post.objects.get(id=Job_post_id).delete()
-            return JsonResponse({'success':True, 'message': f'The deletion of the Job Post with ID #{Job_post_id} success!'}, status=200)
-        except Job_post.DoesNotExist:
-            return JsonResponse({'success':False, 'error': f"This Job post with ID #{Job_post_id} does not exist"}, status=404)
-        except Exception as e:
-            return JsonResponse({'success':False, 'error':str(e)}, status=500)
 
 class Favorite_JobView(APIView):
     def get(self, request, favorite_job_id=None):
