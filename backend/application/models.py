@@ -23,7 +23,7 @@ class Application(models.Model):
         if student_info is not None:
             return student_info
         else:
-            raise ValueError(f'get this applicant with student id {self.student.id}info failed')
+            raise ValueError(f'get this applicant with student id {self.student.id} info failed')
 
     # get the current application detail 
     def get_application_detail(self):
@@ -36,7 +36,8 @@ class Application(models.Model):
                     "answer": self.answer, 
                     "modified_date": self.modified_date, 
                     "student_id" : self.student.id, 
-                    "job_id" : self.job.id
+                    "job_id" : self.job.id,
+                    "job_name": Job_post.objects.get(id=self.job.id).job_name,
                     }
 
         return response

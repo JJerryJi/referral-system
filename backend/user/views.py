@@ -6,6 +6,7 @@ from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
+import traceback
 from django.contrib.auth.hashers import make_password
 
 USER_ATTRIBUTES_TO_INCLUDE = ['id', 'first_name',
@@ -13,7 +14,7 @@ USER_ATTRIBUTES_TO_INCLUDE = ['id', 'first_name',
 
 REGISTRATION_REQUIRED_FIELD = [
     'first_name', 'last_name', 'email', 'username', 'location', 'password']
-ALUMNI_REQUIRED_FIELD = ['company']
+ALUMNI_REQUIRED_FIELD = ['company_name']
 STUDENT_REQUIRED_FIELD = ['password', 'major', 'degree', 'graduation_year']
 
 # update user profile
@@ -108,9 +109,10 @@ class AlumniView(APIView):
             data = json.loads(request.body)
 
             # Validate required fields
-            required_fields = USER_ATTRIBUTES_TO_INCLUDE + ALUMNI_REQUIRED_FIELD
+            required_fields = USER_ATTRIBUTES_TO_INCLUDE[1:] + ALUMNI_REQUIRED_FIELD
             for field in required_fields:
                 if field not in data:
+                    print(field)
                     return JsonResponse({"success": False, "error": f"Missing required field: {field}"}, status=400)
 
             # Use a database transaction for atomicity
@@ -230,7 +232,6 @@ class StudentView(APIView):
         '''
         @header:
         {
-        Authorization: Token [user-token]
         Content-type: application/json
         }
 
@@ -253,20 +254,15 @@ class StudentView(APIView):
         try:
             data = json.loads(request.body)
             # Validate required fields
-            required_fields = USER_ATTRIBUTES_TO_INCLUDE + STUDENT_REQUIRED_FIELD
-            required_fields.remove('id')
+            required_fields = USER_ATTRIBUTES_TO_INCLUDE[1:] + STUDENT_REQUIRED_FIELD
             extra_fields = set(required_fields).difference(data)
-            # for field in required_fields:
-            #     if field not in data:
-            #         return JsonResponse({"success": False, "error": f"Missing required field: {field}"}, status=400)
-            print(extra_fields)
             if extra_fields:
                 return JsonResponse({"success": False, "error": f"Missing required field"}, status=400)
             
             with transaction.atomic():
                 if data['role'] != 'student':
                     raise ValueError(
-                        "Role must be student. Creation of new student Failed'")
+                        "Role must be student. Creation of new student Failed")
 
                 # Create a new user instance
                 new_user = User.objects.create(
@@ -279,7 +275,7 @@ class StudentView(APIView):
                     role=data['role'],
                 )
 
-                # Create a new alumni instance associated with the user
+                # Create a new student instance associated with the user
                 new_student = Student.objects.create(
                     user=new_user,
                     school=data['school'],
@@ -294,12 +290,13 @@ class StudentView(APIView):
                 {
                     "success": True,
                     "message": "Student created successfully",
-                    "alumni": Student.get_student_info_by_id(new_student.id, *USER_ATTRIBUTES_TO_INCLUDE)
+                    "student": Student.get_student_info_by_id(new_student.id, *USER_ATTRIBUTES_TO_INCLUDE)
                 },
                 status=201  # 201 Created status code
             )
         except Exception as e:
-            return JsonResponse({"success": False, "error": str(e)}, status=500)
+            traceback.print_exc()
+            return JsonResponse({"success": False, "error": f'{str(e)}.\n It is either because the username or the email is taken. Please try again'}, status=500)
 
     def delete(self, request, student_id):
         try:

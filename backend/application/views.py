@@ -91,8 +91,10 @@ class ApplicationView(APIView):
             return JsonResponse({'success': True, 'message': 'Application created successfully.'}, status=201)
         
         except PermissionDenied as e: 
+            traceback.print_exc()
             return JsonResponse({'success': False, "error": f"An error occurred: {str(e)}"}, status=401)
         except Exception as e:
+            traceback.print_exc()
             return JsonResponse({'success': False, "error": f"An error occurred: {str(e)}"}, status=500)
 
     def get(self, request, application_id=None):
@@ -154,12 +156,13 @@ class ApplicationView(APIView):
                 }
                 return JsonResponse(response, status=200)
         except PermissionDenied as e:
+            traceback.print_exc()
             return JsonResponse({'success': False, 'error': str(e)}, status=401)
         except Application.DoesNotExist:
             return JsonResponse({'success': False, 'error': f'Application with this ID #{application_id} does not exist.'}, status=404)
         except Exception as e:
+            traceback.print_exc()
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
 
     def put(self, request, application_id):
         '''
@@ -211,7 +214,9 @@ class ApplicationView(APIView):
 
                 # Save the changes
                 application.modified_date = datetime.now()
+
                 application.save()
+                print('success')
 
                 # Return the updated application data
                 response = {

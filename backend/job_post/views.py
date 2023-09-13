@@ -4,6 +4,7 @@ from .models import Job_post, Favorite_job
 from rest_framework.views import APIView
 import json
 from django.db import transaction
+from application.models import Application
 from user.models import Alumni, Student
 from django.core.exceptions import PermissionDenied
 import traceback
@@ -35,11 +36,23 @@ class JobView(APIView):
         else:
             if request.user.is_superuser:
                 post = Job_post.get_one_post_by_id(Job_post_id, admin_login=True)
-            else:
+            elif request.user.role == 'alumni':
                 post = Job_post.get_one_post_by_id(Job_post_id)
+            elif request.user.role == 'student':
+                has_student_applied_before = False
+                # find student object: 
+                post = Job_post.get_one_post_by_id(Job_post_id)
+                for student in Student.objects.all():
+                    if student.user == request.user: 
+                        this_student = student
+                # check if this requested user has already submitted an application before:
+                if Application.objects.filter(student=this_student, job=Job_post.objects.get(id=Job_post_id)).first():
+                    has_student_applied_before = True
+                
             if post is None: return JsonResponse({"succes": False, 'error':'No job with such ID exist'}, status = 404)
             response_data = {
                 "success": True,
+                "has_student_applied_before": has_student_applied_before,
                 "job_post": post,
             }
             return JsonResponse(response_data, status = 200)
@@ -59,7 +72,7 @@ class JobView(APIView):
         try: 
             if request.user.is_authenticated:
                 if request.user.role != 'alumni':
-                    raise ValueError('Your user role is: Student or Superuser. You cannot create job posts') 
+                    raise ValueError('Your role is not authorized to create job posts') 
             else:
                 raise ValueError('You cannot access the page if you are not authorized. Please log in.') 
             
@@ -91,7 +104,7 @@ class JobView(APIView):
                     question = question,
                 )
             # use admin-login here just to return the updated job post 
-            return JsonResponse({'success': True, 'message': 'New Job Post is created! You will be heard back from Team shortly'})
+            return JsonResponse({'success': True, 'message': 'New Job Post is created! You will be heard back from Team shortly'}, status=201)
         except Exception as e:
             traceback.print_exc()
             return JsonResponse({'success':False, 'error': str(e)}, status = 500)
