@@ -114,6 +114,7 @@ class Student(models.Model):
                 "school": student.school,
                 "year_in_school" : student.year_in_school, 
                 "major" : student.major, 
+                "degree": 'Bacholor of Science' if student.degree == 'BS' else 'Master of Science', # render the value
                 "graduation_year": student.graduation_year
             }
         user_info = {}

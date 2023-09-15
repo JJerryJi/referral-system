@@ -37,6 +37,7 @@ class JobView(APIView):
             if request.user.is_superuser:
                 post = Job_post.get_one_post_by_id(Job_post_id, admin_login=True)
             elif request.user.role == 'alumni':
+                has_student_applied_before = True
                 post = Job_post.get_one_post_by_id(Job_post_id)
             elif request.user.role == 'student':
                 has_student_applied_before = False
@@ -172,6 +173,33 @@ class JobView(APIView):
             return JsonResponse({'success': False, 'error': str(e)}, status=401)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+class AlumniJobView(APIView):
+    def get(self, request):
+        try: 
+            if request.user.is_authenticated:
+                if request.user.role == 'alumni':
+                    # find that request alumni
+                    alumni = Alumni.objects.all().get(user = request.user)
+                    my_posts = Job_post.objects.all().filter(alumni=alumni)
+                    job_lists = []
+                    for post in my_posts:
+                        cur_post = Job_post.get_one_post_by_id(post.id, admin_login=True)
+                        job_lists.append(cur_post)
+                else:
+                    raise PermissionDenied('Role: Student are not allowed to view this page.')
+            else:
+                raise ValueError('You need to sign in to view job posts')
+            
+            response_data = {
+                "success": True,
+                "job_post": job_lists,
+            }
+            return JsonResponse(response_data, status = 200)
+        except PermissionDenied as e: 
+            return JsonResponse({"success":False, "error":str(e)}, status=403)
+        except Exception as e:
+            return JsonResponse({"success":False, "error": str(e)}, status=500)
 
 
 class Favorite_JobView(APIView):

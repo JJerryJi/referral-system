@@ -185,12 +185,13 @@ class ApplicationView(APIView):
             # Check the condition of changing an application
             if request.user.is_anonymous:
                 raise PermissionDenied('You are not authorized to change this application, please log in first')
-            elif application.status != 'In Progress' and not request.user.is_superuser:
-                raise ValueError(
-                    'You are not authorized to change this application because the decision is finalized')
-            elif application.application_date + timedelta(days=1) < datetime.now(pytz.timezone('UTC')) and not request.user.is_superuser:
-                raise ValueError(
-                    'You are not authorized to change this application because the deadline for changing this application has expired.')
+            elif request.user.role == 'student':
+                if application.status != 'In Progress' and not request.user.is_superuser:
+                    raise ValueError(
+                        'You are not authorized to change this application because the decision is finalized')
+                elif application.application_date + timedelta(days=1) < datetime.now(pytz.timezone('UTC')) and not request.user.is_superuser:
+                    raise ValueError(
+                        'You are not authorized to change this application because the deadline for changing this application has expired.')
             
             # for Student who post this application and superuser
             if application.student.user == request.user or request.user.is_superuser:
@@ -232,8 +233,8 @@ class ApplicationView(APIView):
                 new_status = request.data.get('status')
 
                 # Validate the new status (you can add more validation logic here)
-                if new_status not in ['Selected', 'Not-Moving-Forward']:
-                    raise ValueError('Invalid input status value. Status must be "Selected" or "Not-Moving-Forward".')
+                if new_status not in ['Selected', 'Not-moving-forward']:
+                    raise ValueError('Invalid input status value. Status must be "Selected" or "Not-moving-forward".')
 
                 # Update the application status
                 application.status = new_status
