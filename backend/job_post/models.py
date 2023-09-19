@@ -69,10 +69,12 @@ class Favorite_job(models.Model):
     job_id = models.IntegerField()
 
     def get_one_favorite_job(self):
+        current_job_post = Job_post.objects.all().get(id=self.job_id)
         response = {
             "id" : self.id, 
             "student_id" : self.student_id, 
-            "job_id" : self.job_id
+            "job_id" : self.job_id, 
+            "job_open_status": True if current_job_post.job_open_status == 'accept' else False,
         }
         return response
     

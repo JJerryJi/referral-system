@@ -93,7 +93,7 @@ class JobView(APIView):
             job_company  = data['job_company'] 
             job_requirement = data['job_requirement']
             job_description = data['job_description']
-            question = data['question']
+            question = data['job_question']
             
             with transaction.atomic(): 
                 Job_post.objects.create(
@@ -135,9 +135,14 @@ class JobView(APIView):
                 raise PermissionDenied('You are not authorized to access this page. Please sign in.')
         
             data = json.loads(request.body)
+            print(data)
             for key, value in data.items():
                 if hasattr(job_post, key):
                     setattr(job_post, key, value)
+                elif key == 'job_question':
+                    setattr(job_post, 'question', value)
+                elif key == 'alumni_id' or key == 'job_id':
+                    continue
                 else:
                     raise ValueError(f'[{key}] in json does not exist in Job_post table. Update Fails')
             job_post.save()
@@ -217,7 +222,7 @@ class Favorite_JobView(APIView):
                     return JsonResponse(response)
                 elif request.user.role == 'student':
                     student = Student.objects.get(user=request.user)
-
+                    print('stu', student)
                     response = {
                         'success': True,
                         'message': f'Here is the view of all fav_table info associated with the student # id {student.id}',
@@ -234,12 +239,13 @@ class Favorite_JobView(APIView):
             except PermissionDenied as e:
                 return JsonResponse({'success':False, "error": str(e)}, status=401)
             except Exception as e:
+                traceback.print_exc()
                 return JsonResponse({'success':False, "error": str(e)}, status=500)
         else:
             try: 
                 fav_job = Favorite_job.objects.get(id = favorite_job_id)
                 if request.user != Student.objects.get(id = fav_job.student_id).user and not request.user.is_superuser:
-                    raise ValueError('You are not authorized to view this information, because it is not your favorite_job info.')
+                    raise PermissionDenied('You are not authorized to view this information, because it is not your favorite_job info.')
                 response = {
                     'success': True, 
                     'message': 'one specific favorite_table info',
@@ -247,23 +253,26 @@ class Favorite_JobView(APIView):
                 }
                 return JsonResponse(response)
             except Favorite_job.DoesNotExist:
-                return JsonResponse({'success': False, 'error': f'The favorite_job with # {favorite_job_id} does not exist.'})
+                return JsonResponse({'success': False, 'error': f'The favorite_job with # {favorite_job_id} does not exist.'}, status=404)
+            except PermissionDenied as e:
+                return JsonResponse({'success':False, "error": str(e)}, status=401)
             except Exception as e: 
-                return JsonResponse({'success':False, "error": str(e)})
+                return JsonResponse({'success':False, "error": str(e)}, status=500)
         
     def delete(self, request, favorite_job_id):
         try:
             fav_job = Favorite_job.objects.get(id=favorite_job_id)
-            # print(request.user)
-            # print(Student.objects.get(id = fav_job.student_id).user)
+            print(fav_job)
+            print(request.user)
+            print(Student.objects.get(id = fav_job.student_id).user)
             if request.user.is_superuser:
                 pass 
             elif request.user != Student.objects.get(id = fav_job.student_id).user:
                 raise PermissionDenied('You are not authorized to view this information, because it is not your favorite_job info.')
             fav_job.delete()
-            return JsonResponse({'success': True, 'error': f'The favorite_job with # {favorite_job_id} is deleted.'}, status=200)
+            return JsonResponse({'success': True, 'message': f'The favorite_job with # {favorite_job_id} is just deleted.'}, status=200)
         except Favorite_job.DoesNotExist:
-            return JsonResponse({"success": False, 'error': f'The favorite_job with ID {favorite_job_id} does not exist.'}, status=403)
+            return JsonResponse({"success": True, 'message': f'The favorite_job with ID {favorite_job_id} has already been deleted.'}, status=200)
         except PermissionDenied as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=403)
         except Exception as e:
@@ -273,37 +282,35 @@ class Favorite_JobView(APIView):
         '''
         @request:
         {
-        student_id: Integer, 
         job_id: Integer
         }
         '''
         try: 
-            student_id = request.data.get('student_id')
-            job_id = request.data.get('job_id')
-            # make sure input is valid
-            student = Student.objects.get(id = student_id)
-            job = Job_post.objects.get(id = job_id)
-            
             # authorization
             if request.user.is_anonymous:
                 raise PermissionDenied("Please sign in as an authenaticated user.")
-            elif request.user != student.user and not request.user.is_superuser:
-                raise PermissionDenied('You are not authorized to add this fav_job info')
+            
+            student = Student.objects.get(user = request.user)
+
+            job_id = request.data.get('job_id')
+            # make sure input is valid
+            job = Job_post.objects.get(id = job_id)
+        
             
             # only one instance is allowed 
-            if Favorite_job.objects.filter(student_id=student_id, job_id=job_id).first():
+            if Favorite_job.objects.filter(student_id=student.id, job_id=job_id).first():
                 raise ValueError('You have already marked this job as saved! So you cannot save it again!')
             
             with transaction.atomic():
                 Favorite_job.objects.create(
-                    student_id = student_id, 
+                    student_id = student.id, 
                     job_id = job_id
                 )
             return JsonResponse({'success':True, 'message': "The new favorite_job is created!"}, status=200)
         except Job_post.DoesNotExist:
             return JsonResponse({'success': False, 'error': f'The job post with # {job_id} does not exist.'}, status=404)
         except Student.DoesNotExist:
-            return JsonResponse({'success': False, 'error': f'The Student Profile  with # {student_id} does not exist.'}, status=404)
+            return JsonResponse({'success': False, 'error': f'The Student Profile  with # {student.id} does not exist.'}, status=404)
         except PermissionDenied as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=403)
         except Exception as e: 
