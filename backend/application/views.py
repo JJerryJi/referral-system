@@ -12,6 +12,8 @@ from datetime import datetime, timedelta
 import pytz
 from django.core.exceptions import PermissionDenied
 import traceback
+from django.conf import settings
+
 
 class ApplicationView(APIView):
     def post(self, request):
@@ -76,16 +78,17 @@ class ApplicationView(APIView):
                 print(job_post.num_of_applicants)
 
             # Generate a unique filename for the resume PDF based on the unique application's ID
+            media_root = settings.MEDIA_ROOT
+            media_url = settings.MEDIA_URL
             resume_filename = f"{application.id}_resume.pdf"
-            resume_path = os.path.join(
-                "/Users/jerry/Desktop/referral-system/backend/application/resume", resume_filename)
+            resume_path = os.path.join(media_root, resume_filename)
 
             # Save the binary PDF data as a file
             with open(resume_path, 'wb') as resume_file:
                 resume_file.write(pdf_data.read())
 
             # Update the 'resume_path' field in the Application instance
-            application.resume_path = resume_path
+            application.resume_path = f'{media_url}{resume_filename}'
             application.save()
 
             return JsonResponse({'success': True, 'message': 'Application created successfully.'}, status=201)
