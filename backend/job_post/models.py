@@ -59,6 +59,7 @@ class Job_post(models.Model):
             'job_question' : job_post.question, 
             'num_of_applicants' : job_post.num_of_applicants, 
             'job_review_status' : job_post.job_review_status,
+            'job_created_time' : job_post.created_time
         }
         
         return post_info

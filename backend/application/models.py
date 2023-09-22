@@ -37,7 +37,8 @@ class Application(models.Model):
                     "modified_date": self.modified_date, 
                     "student_id" : self.student.id, 
                     "job_id" : self.job.id,
-                    "job_name": Job_post.objects.get(id=self.job.id).job_name,
+                    "job_name": self.job.job_name,
+                    "user_id": self.student.user.id
                     }
 
         return response

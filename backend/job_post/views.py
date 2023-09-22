@@ -19,7 +19,7 @@ class JobView(APIView):
 
             # alumni & student-view
             elif request.user.is_authenticated:
-                all_posts = Job_post.objects.all()
+                all_posts = Job_post.objects.all().order_by('-created_time')
                 job_lists = []
                 for post in all_posts:
                     cur_post = Job_post.get_one_post_by_id(post.id, admin_login=(request.user == post.alumni.user))
@@ -73,7 +73,7 @@ class JobView(APIView):
         try: 
             if request.user.is_authenticated:
                 if request.user.role != 'alumni':
-                    raise ValueError('Your role is not authorized to create job posts') 
+                    raise ValueError('Your role is student. So not authorized to create job posts') 
             else:
                 raise ValueError('You cannot access the page if you are not authorized. Please log in.') 
             
@@ -186,7 +186,7 @@ class AlumniJobView(APIView):
                 if request.user.role == 'alumni':
                     # find that request alumni
                     alumni = Alumni.objects.all().get(user = request.user)
-                    my_posts = Job_post.objects.all().filter(alumni=alumni)
+                    my_posts = Job_post.objects.all().order_by('-created_time').filter(alumni=alumni)
                     job_lists = []
                     for post in my_posts:
                         cur_post = Job_post.get_one_post_by_id(post.id, admin_login=True)
