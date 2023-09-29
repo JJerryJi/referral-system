@@ -175,3 +175,29 @@ REST_FRAMEWORK = {
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Path to your media folder
 print(MEDIA_ROOT)
+
+REDIS_HOST = 'localhost'  # Redis server address
+REDIS_PORT = 6379  # Redis server port
+REDIS_DB = 0  # Redis database number
+
+# Cache settings using Redis
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': f'redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}',  # Redis server address and database number
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+
+# Token expiration time
+TOKEN_EXPIRATION = timedelta(days=3)
+
+# ... (Other settings)
+
+# Authentication settings
+AUTHENTICATION_BACKENDS = (
+    'django.contrib.auth.backends.ModelBackend',  # Include the default ModelBackend for user authentication
+)
+
