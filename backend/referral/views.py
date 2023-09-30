@@ -1,3 +1,4 @@
+import traceback
 import redis
 import os
 import binascii
@@ -17,23 +18,13 @@ class ObtainTokenView(APIView):
     def get(self, request):
         # Retrieve the token from the query parameter
         cur_token = request.query_params.get('token')
-
+        print(cur_token)
         try: 
             if cur_token:
                 # Check if the token exists in Redis
-                user_id = redis_client.hget('tokens', cur_token)
-
+                user_id = int(redis_client.get(cur_token))
+                print(user_id)
                 if user_id:
-                    user_id = int(user_id.decode('utf-8'))
-                    token_created = float(cur_token.split(":")[-1])  # Extract the token creation timestamp
-                    current_time = datetime.now().timestamp()
-
-                    # Check if the token has expired
-                    if token_created + self.expiration_time.total_seconds() < current_time:
-                        # Token has expired, delete it from Redis
-                        redis_client.hdel('tokens', cur_token)
-                        return Response({'error': "Session times out! Please sign in again"}, status=401)
-
                     for student in Student.objects.all():
                         if student.user.id == user_id:
                             return Response({'student_id': student.id, 'user_id': user_id, 'username': student.user.username, 'email': student.user.email})
@@ -43,8 +34,11 @@ class ObtainTokenView(APIView):
                     raise ValueError('The user is not found')
                 else:
                     return Response({'error': "Invalid Token"}, status=401)
+            else:
+                raise ValueError('Session Time Out! Please log in again')
                 
         except Exception as e:
+                traceback.print_exc()
                 return Response({'error': str(e)}, status=500)
         
 
@@ -56,14 +50,14 @@ class ObtainTokenView(APIView):
             user = authenticate(username=username, password=password)
             if user is not None:
                 # Generate a unique token
-                random_component = binascii.hexlify(os.urandom(20)).decode()
-                token = f'{random_component}:{datetime.now().timestamp()}'
+                token = binascii.hexlify(os.urandom(20)).decode()
+                # token = f'{token}:{datetime.now().timestamp()}'
 
                 # Store the token in Redis with an expiration time
-                redis_client.hsetnx('tokens', token, str(user.id))
-                redis_client.expire(token, int(self.expiration_time.total_seconds()))
+                redis_client.set(token, str(user.id))
+                redis_client.expire(token, 60 * 60)
 
-                return Response({'token': token, 'expiration': str(datetime.now() + self.expiration_time)})
+                return Response({'token': token})
             else:
                 return Response({'error': 'Unauthorized user'}, status=401)
 

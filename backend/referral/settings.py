@@ -210,14 +210,13 @@ REDIS_CLIENT = redis.StrictRedis(host='localhost', port=6379, db=0)
 class RedisTokenAuthentication(TokenAuthentication):
 
     def authenticate_credentials(self, key):
-        user_id_bytes = REDIS_CLIENT.hget('tokens', key)
+        user_id_bytes = REDIS_CLIENT.get(key)
         if user_id_bytes:
-            user_id_str = user_id_bytes.decode('utf-8')  # Decode bytes to a string
-            user_id = int(user_id_str)  # Convert the string to an integer
+            user_id = int(user_id_bytes)  # Convert the string to an integer
             # print(user_id)
+
             # Create a user object with the user ID
             user = get_user_model().objects.filter(id=user_id).first()
-
             if user and user.is_active:
                 return (user, None)  # Returning the user
 
