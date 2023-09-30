@@ -356,7 +356,8 @@ class LeaderBoardView(APIView):
                 one_post['job_post_id'] = job_post_id
                 one_post['job_name'] = Job_post.objects.all().get(id=job_post_id).job_name
                 one_post['job_company'] = Job_post.objects.all().get(id=job_post_id).job_company
-                one_post['num_of_applicants'] = Job_post.objects.all().get(id=job_post_id).num_of_applicants
+                # one_post['num_of_applicants'] = Job_post.objects.all().get(id=job_post_id).num_of_applicants
+                one_post['created_time'] = Job_post.objects.all().get(id=job_post_id).created_time
                 one_post['score'] = job_post_score
                 data[i] = one_post 
 

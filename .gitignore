@@ -1,5 +1,7 @@
 db.sqlite3
 __pycache__
 migrations
-backend/media
 token.txt
+backend/media
+backend/dump.rdb
+backend/referral/settings.py
