@@ -14,6 +14,9 @@ from django.core.exceptions import PermissionDenied
 import traceback
 from django.conf import settings
 
+# Constants for score values
+APPLY_SCORE = settings.APPLY_SCORE
+redis_client = settings.REDIS_CLIENT
 
 class ApplicationView(APIView):
     def post(self, request):
@@ -75,7 +78,11 @@ class ApplicationView(APIView):
                 # add one to num_of_applicants
                 job_post.num_of_applicants += 1
                 job_post.save()
-                print(job_post.num_of_applicants)
+                # print(job_post.num_of_applicants)
+
+
+                # Calculate Application Score 
+                redis_client.zincrby('job_post_leaderboard', APPLY_SCORE, id)
 
             # Generate a unique filename for the resume PDF based on the unique application's ID
             media_root = settings.MEDIA_ROOT

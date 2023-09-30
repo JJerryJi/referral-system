@@ -6,9 +6,10 @@ from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from user.models import Student, Alumni
 from datetime import timedelta, datetime
+from django.conf import settings
 
 # Initialize a Redis client
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
+redis_client = settings.REDIS_CLIENT
 
 class ObtainTokenView(APIView):
     expiration_time = timedelta(days=3)

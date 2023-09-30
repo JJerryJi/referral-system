@@ -8,6 +8,14 @@ from application.models import Application
 from user.models import Alumni, Student
 from django.core.exceptions import PermissionDenied
 import traceback
+from django.conf import settings 
+
+# leaderboard feature 
+redis_client = settings.REDIS_CLIENT
+
+# Constants for score values
+CLICK_SCORE = settings.CLICK_SCORE
+FAVORITE_SCORE = settings.FAVORITE_SCORE
 
 # Create your views here.
 class JobView(APIView):
@@ -51,6 +59,17 @@ class JobView(APIView):
                     has_student_applied_before = True
                 
             if post is None: return JsonResponse({"succes": False, 'error':'No job with such ID exist'}, status = 404)
+
+            # Calculate view score: 
+            with transaction.atomic():
+                # avoid a user to add the score twice
+                if redis_client.sismember(f'leaderboard_post_{Job_post_id}', request.user.id):
+                    pass
+                else:
+                    redis_client.zincrby('job_post_leaderboard', CLICK_SCORE, Job_post_id)
+                    # print(redis_client.zscore('job_post_leaderboard', Job_post_id))
+                    redis_client.sadd(f'leaderboard_post_{Job_post_id}', request.user.id)
+                
             response_data = {
                 "success": True,
                 "has_student_applied_before": has_student_applied_before,
@@ -110,7 +129,6 @@ class JobView(APIView):
             traceback.print_exc()
             return JsonResponse({'success':False, 'error': str(e)}, status = 500)
         
-
     def put(self, request, Job_post_id):
         '''
         @request:
@@ -157,8 +175,6 @@ class JobView(APIView):
             traceback.print_exc()
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
-        
-    
     def delete(self, request, Job_post_id):
         try: 
             job_post = Job_post.objects.get(id=Job_post_id)
@@ -205,7 +221,6 @@ class AlumniJobView(APIView):
             return JsonResponse({"success":False, "error":str(e)}, status=403)
         except Exception as e:
             return JsonResponse({"success":False, "error": str(e)}, status=500)
-
 
 class Favorite_JobView(APIView):
     def get(self, request, favorite_job_id=None):
@@ -262,20 +277,25 @@ class Favorite_JobView(APIView):
     def delete(self, request, favorite_job_id):
         try:
             fav_job = Favorite_job.objects.get(id=favorite_job_id)
-            print(fav_job)
-            print(request.user)
-            print(Student.objects.get(id = fav_job.student_id).user)
+            # print(fav_job)
+            # print(request.user)
+            # print(Student.objects.get(id = fav_job.student_id).user)
             if request.user.is_superuser:
                 pass 
             elif request.user != Student.objects.get(id = fav_job.student_id).user:
                 raise PermissionDenied('You are not authorized to view this information, because it is not your favorite_job info.')
-            fav_job.delete()
+            with transaction.atomic():
+                fav_job.delete()
+                # calculate the score
+                redis_client.zincrby('job_post_leaderboard', -FAVORITE_SCORE, fav_job.job_id)
+
             return JsonResponse({'success': True, 'message': f'The favorite_job with # {favorite_job_id} is just deleted.'}, status=200)
         except Favorite_job.DoesNotExist:
             return JsonResponse({"success": True, 'message': f'The favorite_job with ID {favorite_job_id} has already been deleted.'}, status=200)
         except PermissionDenied as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=403)
         except Exception as e:
+            traceback.print_exc()
             return JsonResponse({"success": False, 'error': str(e)}, status=500) 
     
     def post(self, request):
@@ -306,6 +326,8 @@ class Favorite_JobView(APIView):
                     student_id = student.id, 
                     job_id = job_id
                 )
+                redis_client.zincrby('job_post_leaderboard', FAVORITE_SCORE, job_id)
+                
             return JsonResponse({'success':True, 'message': "The new favorite_job is created!"}, status=200)
         except Job_post.DoesNotExist:
             return JsonResponse({'success': False, 'error': f'The job post with # {job_id} does not exist.'}, status=404)
@@ -315,3 +337,31 @@ class Favorite_JobView(APIView):
             return JsonResponse({'success': False, 'error': str(e)}, status=403)
         except Exception as e: 
             return JsonResponse({"success": False, 'error': str(e)}, status=500) 
+
+
+class LeaderBoardView(APIView):
+    def get(self, request):
+        try:
+            # Retrieve the top 5 job post IDs with scores from the Redis leaderboard
+            leaderboard_info = redis_client.zrange('job_post_leaderboard', 0, 4, desc=True, withscores=True)
+            # print(leaderboard_info)
+            # Extract job post IDs and scores from the Redis response
+            data = {}
+            for i in range(len(leaderboard_info)):
+                job_post_id = leaderboard_info[i][0].decode('utf-8')
+                job_post_score = int(leaderboard_info[i][1])
+
+                # for each job post 
+                one_post = {}
+                one_post['job_post_id'] = job_post_id
+                one_post['job_name'] = Job_post.objects.all().get(id=job_post_id).job_name
+                one_post['job_company'] = Job_post.objects.all().get(id=job_post_id).job_company
+                one_post['num_of_applicants'] = Job_post.objects.all().get(id=job_post_id).num_of_applicants
+                one_post['score'] = job_post_score
+                data[i] = one_post 
+
+
+            return JsonResponse(data, status=200)
+        except Exception as e:
+            # Handle exceptions as needed
+            return JsonResponse({'error': str(e)}, status=500)

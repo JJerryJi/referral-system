@@ -200,13 +200,17 @@ REST_FRAMEWORK = {
     ),
 }
 
+# score board config:
+CLICK_SCORE = 1
+FAVORITE_SCORE = 5
+APPLY_SCORE = 10
 
-redis_connect = redis.StrictRedis(host='localhost', port=6379, db=0)
+REDIS_CLIENT = redis.StrictRedis(host='localhost', port=6379, db=0)
 
 class RedisTokenAuthentication(TokenAuthentication):
 
     def authenticate_credentials(self, key):
-        user_id_bytes = redis_connect.hget('tokens', key)
+        user_id_bytes = REDIS_CLIENT.hget('tokens', key)
         if user_id_bytes:
             user_id_str = user_id_bytes.decode('utf-8')  # Decode bytes to a string
             user_id = int(user_id_str)  # Convert the string to an integer
