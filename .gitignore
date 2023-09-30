@@ -6,4 +6,4 @@ backend/media
 backend/dump.rdb
 backend/referral/settings.py
 
-.vscode/*
+.vscode
