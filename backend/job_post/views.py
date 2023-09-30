@@ -12,8 +12,6 @@ import traceback
 # Create your views here.
 class JobView(APIView):
     def get(self, request, Job_post_id=None):
-        print(request.headers)
-        print(dir(request))
         if Job_post_id == None:
             # superuser view
             if request.user.is_superuser:  

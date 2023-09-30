@@ -10,6 +10,12 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 import os
+import json 
+from rest_framework import exceptions
+from rest_framework.authentication import TokenAuthentication
+from django.utils.translation import gettext_lazy as _
+from django.contrib.auth import get_user_model
+import redis
 from pathlib import Path
 from datetime import timedelta
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -164,13 +170,6 @@ CORS_ALLOW_METHODS = [
     'PUT',
 ]
 
-REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-    ],
-    'DEFAULT_TOKEN_EXPIRATION': timedelta(seconds=20),  # Set the token expiration to 20 seconds
-}
-
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')  # Path to your media folder
@@ -194,10 +193,30 @@ CACHES = {
 # Token expiration time
 TOKEN_EXPIRATION = timedelta(days=3)
 
-# ... (Other settings)
 
-# Authentication settings
-AUTHENTICATION_BACKENDS = (
-    'django.contrib.auth.backends.ModelBackend',  # Include the default ModelBackend for user authentication
-)
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (  #If there is rest_ The framework configuration item can be added separately
+        'referral.settings.RedisTokenAuthentication',  # Project name. File where the recertification class is located. Class name
+    ),
+}
+
+
+redis_connect = redis.StrictRedis(host='localhost', port=6379, db=0)
+
+class RedisTokenAuthentication(TokenAuthentication):
+
+    def authenticate_credentials(self, key):
+        user_id_bytes = redis_connect.hget('tokens', key)
+        if user_id_bytes:
+            user_id_str = user_id_bytes.decode('utf-8')  # Decode bytes to a string
+            user_id = int(user_id_str)  # Convert the string to an integer
+            # print(user_id)
+            # Create a user object with the user ID
+            user = get_user_model().objects.filter(id=user_id).first()
+
+            if user and user.is_active:
+                return (user, None)  # Returning the user
+
+        # Handle the case when the user_id is not found in Redis or the user is not active
+        raise exceptions.AuthenticationFailed(_('Invalid token.'))
 
