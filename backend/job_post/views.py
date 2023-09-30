@@ -10,6 +10,8 @@ from django.core.exceptions import PermissionDenied
 import traceback
 from django.conf import settings 
 
+from django.contrib.auth.decorators import login_required
+
 # leaderboard feature 
 redis_client = settings.REDIS_CLIENT
 
@@ -153,7 +155,7 @@ class JobView(APIView):
                 raise PermissionDenied('You are not authorized to access this page. Please sign in.')
         
             data = json.loads(request.body)
-            print(data)
+            # print(data)
             for key, value in data.items():
                 if hasattr(job_post, key):
                     setattr(job_post, key, value)
@@ -237,7 +239,7 @@ class Favorite_JobView(APIView):
                     return JsonResponse(response)
                 elif request.user.role == 'student':
                     student = Student.objects.get(user=request.user)
-                    print('stu', student)
+                    # print('stu', student)
                     response = {
                         'success': True,
                         'message': f'Here is the view of all fav_table info associated with the student # id {student.id}',
@@ -339,28 +341,64 @@ class Favorite_JobView(APIView):
             return JsonResponse({"success": False, 'error': str(e)}, status=500) 
 
 
+# class LeaderBoardView(APIView):
+#     def get(self, request):
+#         try:
+#             # Retrieve the top 5 job post IDs with scores from the Redis leaderboard
+#             leaderboard_info = redis_client.zrange('job_post_leaderboard', 0, 4, desc=True, withscores=True)
+#             # print(leaderboard_info)
+#             # Extract job post IDs and scores from the Redis response
+#             data = {}
+#             for i in range(len(leaderboard_info)):
+#                 job_post_id = leaderboard_info[i][0].decode('utf-8')
+#                 job_post_score = int(leaderboard_info[i][1])
+
+#                 # for each job post 
+#                 one_post = {}
+#                 one_post['job_post_id'] = job_post_id
+#                 one_post['job_name'] = Job_post.objects.all().get(id=job_post_id).job_name
+#                 one_post['job_company'] = Job_post.objects.all().get(id=job_post_id).job_company
+#                 # one_post['num_of_applicants'] = Job_post.objects.all().get(id=job_post_id).num_of_applicants
+#                 one_post['created_time'] = Job_post.objects.all().get(id=job_post_id).created_time
+#                 one_post['score'] = job_post_score
+#                 data[i] = one_post 
+
+
+#             return JsonResponse(data, status=200)
+#         except Exception as e:
+#             # Handle exceptions as needed
+#             return JsonResponse({'error': str(e)}, status=500)
+
+
 class LeaderBoardView(APIView):
     def get(self, request):
         try:
-            # Retrieve the top 5 job post IDs with scores from the Redis leaderboard
-            leaderboard_info = redis_client.zrange('job_post_leaderboard', 0, 4, desc=True, withscores=True)
-            # print(leaderboard_info)
+            # Retrieve page and per_page parameters from the request
+            page = int(request.GET.get('page', 0))  # Default to page 1 if not provided
+            per_page = int(request.GET.get('per_page', 5))  # Default to 5 items per page if not provided
+
+            # Calculate the start and end indices based on the page and per_page values
+            start_index = page  * per_page
+            end_index = start_index + per_page
+
+            # Retrieve the top job post IDs with scores from the Redis leaderboard
+            leaderboard_info = redis_client.zrange('job_post_leaderboard', start_index, end_index - 1, desc=True, withscores=True)
+
             # Extract job post IDs and scores from the Redis response
-            data = {}
-            for i in range(len(leaderboard_info)):
-                job_post_id = leaderboard_info[i][0].decode('utf-8')
-                job_post_score = int(leaderboard_info[i][1])
+            data = {'total_num': redis_client.zcard('job_post_leaderboard')}
+            for index, (job_post_id, job_post_score) in enumerate(leaderboard_info):
+                job_post_id = job_post_id.decode('utf-8')
 
-                # for each job post 
-                one_post = {}
-                one_post['job_post_id'] = job_post_id
-                one_post['job_name'] = Job_post.objects.all().get(id=job_post_id).job_name
-                one_post['job_company'] = Job_post.objects.all().get(id=job_post_id).job_company
-                # one_post['num_of_applicants'] = Job_post.objects.all().get(id=job_post_id).num_of_applicants
-                one_post['created_time'] = Job_post.objects.all().get(id=job_post_id).created_time
-                one_post['score'] = job_post_score
-                data[i] = one_post 
-
+                # Fetch job details using job_post_id
+                job = Job_post.objects.get(id=job_post_id)
+                one_post = {
+                    'job_post_id': job_post_id,
+                    'job_name': job.job_name,
+                    'job_company': job.job_company,
+                    'created_time': job.created_time,
+                    'score': job_post_score,
+                }
+                data[index] = one_post
 
             return JsonResponse(data, status=200)
         except Exception as e:

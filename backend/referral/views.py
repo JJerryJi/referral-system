@@ -18,12 +18,12 @@ class ObtainTokenView(APIView):
     def get(self, request):
         # Retrieve the token from the query parameter
         cur_token = request.query_params.get('token')
-        print(cur_token)
+        # print(cur_token)
         try: 
             if cur_token:
                 # Check if the token exists in Redis
                 user_id = int(redis_client.get(cur_token))
-                print(user_id)
+                # print(user_id)
                 if user_id:
                     for student in Student.objects.all():
                         if student.user.id == user_id:
