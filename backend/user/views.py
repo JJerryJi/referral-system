@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from django.db import transaction
 import traceback
 from django.contrib.auth.hashers import make_password
+from user.tasks import send_welcome_email
 
 USER_ATTRIBUTES_TO_INCLUDE = ['id', 'first_name',
                               'last_name', 'email', 'username', 'location']
@@ -137,6 +138,8 @@ class AlumniView(APIView):
                     user=new_user,
                     company_name=data['company_name']
                 )
+
+                send_welcome_email.delay(data['email'])
 
             # return the information of the current alumni
             return JsonResponse(
@@ -284,6 +287,8 @@ class StudentView(APIView):
                     graduation_year=data['graduation_year'],
                     degree=data['degree'],
                 )
+                # send welcome email
+                send_welcome_email.delay(data['email'])
 
             # return the information of the current alumni
             return JsonResponse(
@@ -314,3 +319,21 @@ class StudentView(APIView):
             return JsonResponse({"success": True, "message": "Student deleted successfully"})
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=500)
+
+
+# def send_welcome_email_view(request):
+#     if request.method == 'GET':
+#         try:
+#             # Replace 'user@example.com' with the email address to which you want to send the welcome email.
+#             email_to_send = 'jerryji040506@g.ucla.edu'
+            
+#             # Trigger the Celery task to send the welcome email asynchronously.
+#             send_welcome_email.delay(email_to_send)
+            
+#             return JsonResponse({'success': True, 'message': f'Welcome email will be sent to {email_to_send}.'})
+#         except Exception as e:
+#             return JsonResponse({'success': False, 'error': str(e)})
+#     else:
+#         # Handle other HTTP methods (e.g., POST, PUT, DELETE) if needed.
+#         return JsonResponse({'success': False, 'error': 'Only GET requests are allowed for this view.'})
+
