@@ -13,6 +13,7 @@ import pytz
 from django.core.exceptions import PermissionDenied
 import traceback
 from django.conf import settings
+from .tasks import send_application_status_update_email
 
 # Constants for score values
 APPLY_SCORE = settings.APPLY_SCORE
@@ -247,8 +248,12 @@ class ApplicationView(APIView):
                     raise ValueError('Invalid input status value. Status must be "Selected" or "Not-moving-forward".')
 
                 # Update the application status
-                application.status = new_status
-                application.save()
+                with transaction.atomic():
+                    application.status = new_status
+                    application.save()
+                
+                    send_application_status_update_email.delay(email=application.student.user.email)
+                # send_update_status_email.delay(email=application.student.user.email, applicaton_id=application_id)
 
                 response = {
                     'success': True,

@@ -321,19 +321,18 @@ class StudentView(APIView):
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
 
-# def send_welcome_email_view(request):
-#     if request.method == 'GET':
-#         try:
-#             # Replace 'user@example.com' with the email address to which you want to send the welcome email.
-#             email_to_send = 'jerryji040506@g.ucla.edu'
+def send_welcome_email_view(request):
+    if request.method == 'GET':
+        try:
+            # Replace 'user@example.com' with the email address to which you want to send the welcome email.
+            email_to_send = 'jerryji040506@g.ucla.edu'
             
-#             # Trigger the Celery task to send the welcome email asynchronously.
-#             send_welcome_email.delay(email_to_send)
-            
-#             return JsonResponse({'success': True, 'message': f'Welcome email will be sent to {email_to_send}.'})
-#         except Exception as e:
-#             return JsonResponse({'success': False, 'error': str(e)})
-#     else:
-#         # Handle other HTTP methods (e.g., POST, PUT, DELETE) if needed.
-#         return JsonResponse({'success': False, 'error': 'Only GET requests are allowed for this view.'})
+            # Trigger the Celery task to send the welcome email asynchronously.
+            send_welcome_email.delay(email_to_send)
 
+            return JsonResponse({'success': True, 'message': f'Welcome email will be sent to {email_to_send}.'})
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)})
+    else:
+        # Handle other HTTP methods (e.g., POST, PUT, DELETE) if needed.
+        return JsonResponse({'success': False, 'error': 'Only GET requests are allowed for this view.'})
