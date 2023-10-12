@@ -28,6 +28,7 @@ class Job_post(models.Model):
 
     def __str__(self) -> str:
         return str(self.job_name) + ' at ' + str(self.job_company)
+    
     @classmethod
     def get_all_post_info(cls, admin_login=False):
         all_posts = cls.objects.all()
@@ -39,11 +40,11 @@ class Job_post(models.Model):
         return job_lists
     
     @classmethod
-    def get_one_post_by_id(cls, job_id, admin_login=False):
+    def get_one_post_by_id(cls, job_id, permission=False):
         try: 
             job_post = cls.objects.get(id=job_id)
             # if the job_post is not being reviewed, only return limited info
-            if not admin_login:
+            if not permission:
                 if job_post.job_review_status == 'In-review':
                     return {"job_id": job_post.id, 'job_review_status':'In-review'}
         except Job_post.DoesNotExist:

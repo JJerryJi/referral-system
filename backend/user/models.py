@@ -14,7 +14,7 @@ class User(AbstractUser):
     location = models.CharField(max_length=255, null=False, blank=False)
     created_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
-
+    email = models.EmailField(unique=True)  # Add unique=True to make the email field unique
     def __str__(self):
         return self.username
 

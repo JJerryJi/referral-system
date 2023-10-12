@@ -7,7 +7,7 @@ from django.conf import settings
 def send_application_status_update_email(email: str):
     try:
         subject = 'Status update to the application'
-        message = f'Here is the status update to your application. Please sign in to view details'
+        message = f'Here is the status update to your application. Please sign in to view details.'
         recipient_list = [email]
 
         send_mail(subject=subject, message=message, from_email=settings.EMAIL_HOST_USER, recipient_list=recipient_list, fail_silently=False)

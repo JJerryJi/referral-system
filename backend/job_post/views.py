@@ -10,8 +10,6 @@ from django.core.exceptions import PermissionDenied
 import traceback
 from django.conf import settings 
 
-from django.contrib.auth.decorators import login_required
-
 # leaderboard feature 
 redis_client = settings.REDIS_CLIENT
 
@@ -22,17 +20,18 @@ FAVORITE_SCORE = settings.FAVORITE_SCORE
 # Create your views here.
 class JobView(APIView):
     def get(self, request, Job_post_id=None):
+        # Retrieve all Job Posts: 
         if Job_post_id == None:
             # superuser view
             if request.user.is_superuser:  
-                job_lists = Job_post.get_all_post_info(admin_login=True)
+                job_lists = Job_post.get_all_post_info(permission=True)
 
             # alumni & student-view
             elif request.user.is_authenticated:
                 all_posts = Job_post.objects.all().order_by('-created_time')
                 job_lists = []
                 for post in all_posts:
-                    cur_post = Job_post.get_one_post_by_id(post.id, admin_login=(request.user == post.alumni.user))
+                    cur_post = Job_post.get_one_post_by_id(post.id, permission=(request.user == post.alumni.user))
                     job_lists.append(cur_post)
             else:
                 raise ValueError('You need to sign in to view job posts')
@@ -42,10 +41,11 @@ class JobView(APIView):
                 "job_post": job_lists,
             }
             return JsonResponse(response_data, status = 200)
-        # get a single post by id
+        # Get a single post by id
         else:
             if request.user.is_superuser:
-                post = Job_post.get_one_post_by_id(Job_post_id, admin_login=True)
+                has_student_applied_before = True
+                post = Job_post.get_one_post_by_id(Job_post_id, permission=True)
             elif request.user.role == 'alumni':
                 has_student_applied_before = True
                 post = Job_post.get_one_post_by_id(Job_post_id)
@@ -87,7 +87,7 @@ class JobView(APIView):
             "job_company": "String" (required),
             "job_requirement": "String" (required),
             "job_description": "String" (required),
-            "question": "String" (required)
+            "question": "String" (optional)
         }
         '''
 
@@ -156,18 +156,20 @@ class JobView(APIView):
         
             data = json.loads(request.body)
             # print(data)
-            for key, value in data.items():
-                if hasattr(job_post, key):
-                    setattr(job_post, key, value)
-                elif key == 'job_question':
-                    setattr(job_post, 'question', value)
-                elif key == 'alumni_id' or key == 'job_id':
-                    continue
-                else:
-                    raise ValueError(f'[{key}] in json does not exist in Job_post table. Update Fails')
-            job_post.save()
 
-            return JsonResponse({'success': True, 'message': f'Update Job Post #{job_post.id} is successful!', 'job_post': Job_post.get_one_post_by_id(job_post.id, admin_login=True)}, status=200)
+            with transaction.atomic():
+                for key, value in data.items():
+                    if hasattr(job_post, key):
+                        setattr(job_post, key, value)
+                    elif key == 'job_question':
+                        setattr(job_post, 'question', value)
+                    elif key == 'alumni_id' or key == 'job_id' or key == 'job_created_time':
+                        continue
+                    else:
+                        raise ValueError(f'[{key}] in json does not exist in Job_post table. Update Fails')
+                job_post.save()
+
+            return JsonResponse({'success': True, 'message': f'Update Job Post #{job_post.id} is successful!', 'job_post': Job_post.get_one_post_by_id(job_post.id, permission=True)}, status=200)
         
         except Job_post.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Job Post is not found. So the update fails!'}, status = 404)
@@ -192,10 +194,11 @@ class JobView(APIView):
             return JsonResponse({'success': True, 'message': f"Successfully Delete Job Post # {Job_post_id}"}, status=200)
         except Job_post.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Job Post is not found. So the update fails!'}, status = 404)
-        except PermissionError as e:
+        except PermissionDenied as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=401)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 class AlumniJobView(APIView):
     def get(self, request):
@@ -207,12 +210,12 @@ class AlumniJobView(APIView):
                     my_posts = Job_post.objects.all().order_by('-created_time').filter(alumni=alumni)
                     job_lists = []
                     for post in my_posts:
-                        cur_post = Job_post.get_one_post_by_id(post.id, admin_login=True)
+                        cur_post = Job_post.get_one_post_by_id(post.id, permission=True)
                         job_lists.append(cur_post)
                 else:
                     raise PermissionDenied('Role: Student are not allowed to view this page.')
             else:
-                raise ValueError('You need to sign in to view job posts')
+                raise PermissionDenied('You need to sign in to view job posts')
             
             response_data = {
                 "success": True,
@@ -387,7 +390,7 @@ class LeaderBoardView(APIView):
             # Extract job post IDs and scores from the Redis response
             data = {'total_num': redis_client.zcard('job_post_leaderboard')}
             for index, (job_post_id, job_post_score) in enumerate(leaderboard_info):
-                job_post_id = job_post_id.decode('utf-8')
+                job_post_id = int(job_post_id)
 
                 # Fetch job details using job_post_id
                 job = Job_post.objects.get(id=job_post_id)

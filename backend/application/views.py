@@ -1,5 +1,4 @@
 import os
-import json
 from django.http import JsonResponse
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -32,7 +31,7 @@ class ApplicationView(APIView):
         }
         '''
         try:
-            # TODO: need to authorize request.user is a student or superuser
+            # authorize alumni and superuser
             try:
                 if request.user.is_anonymous:
                     raise PermissionDenied('You are not authorized to post an application. Please sign in.')
@@ -251,7 +250,10 @@ class ApplicationView(APIView):
                 with transaction.atomic():
                     application.status = new_status
                     application.save()
-                
+                    # websocket connection 
+                    redis_client.lpush('ws', application.student.user.id)
+                    # c[application.student.user.id].send_text('hello world')
+                    # Celery send email task 
                     send_application_status_update_email.delay(email=application.student.user.email)
                 # send_update_status_email.delay(email=application.student.user.email, applicaton_id=application_id)
 
