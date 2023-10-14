@@ -17,6 +17,8 @@ from .tasks import send_application_status_update_email
 # Constants for score values
 APPLY_SCORE = settings.APPLY_SCORE
 redis_client = settings.REDIS_CLIENT
+media_root = settings.MEDIA_ROOT
+media_url = settings.MEDIA_URL
 
 class ApplicationView(APIView):
     def post(self, request):
@@ -85,8 +87,6 @@ class ApplicationView(APIView):
                 redis_client.zincrby('job_post_leaderboard', APPLY_SCORE, id)
 
             # Generate a unique filename for the resume PDF based on the unique application's ID
-            media_root = settings.MEDIA_ROOT
-            media_url = settings.MEDIA_URL
             resume_filename = f"{application.id}_resume.pdf"
             resume_path = os.path.join(media_root, resume_filename)
 
@@ -215,10 +215,11 @@ class ApplicationView(APIView):
                         elif updated_pdf and updated_pdf.size > 5242880:  # 5 megabytes
                             raise ValueError(
                                 "Your updated Resume size exceeds 5MB. Please upload a smaller one")
-
+                        resume_filename = f"{application_id}_resume.pdf"
+                        resume_path = os.path.join(media_root, resume_filename)
                         # Save the PDF data in the same path if provided
                         if updated_pdf:
-                            with open(application.resume_path, 'wb') as resume_file:
+                            with open(resume_path, 'wb') as resume_file:
                                 resume_file.write(updated_pdf.read())
                     elif hasattr(application, key):
                         setattr(application, key, value)
@@ -313,7 +314,7 @@ class Alumni_ApplicationView(APIView):
         try:
             application = Application.objects.get(id=application_id)
 
-            # TODO: check if the logged-in user is the alumni who posted the job
+            # check if the logged-in user is the alumni who posted the job
             if request.user.id != application.job.alumni.user.id :
                 raise PermissionDenied('You are not authorized to change the status of this application because it is the job posted by you.')
 

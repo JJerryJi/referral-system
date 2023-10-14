@@ -5,6 +5,7 @@ import redis
 from datetime import datetime
 import asyncio
 import threading 
+import time 
 
 app = FastAPI()
 
@@ -27,6 +28,33 @@ async def get_data():
         await asyncio.sleep(1)
     return msg
 
+async def task_with_delay(thread_name, delay):
+    print(f"Thread {thread_name} is starting.")
+    while True:
+        key, msg = redis_client.blpop('ws')
+        if msg:
+            print('length: ', len(connectionManager))
+            for connected in connectionManager.values():
+                notification = {
+                    "id": str(uuid.uuid4()),
+                    "title": 'Status Update of your application',
+                    "description": 'Please view it in your application!',
+                    "avatar": None,
+                    "type": 'mail',
+                    "createdAt": str(datetime.now().isoformat()),
+                    "isUnRead": True,
+                    "filteredId": int(msg)
+                }
+                await connected.send_json(notification)
+            print('send message to all!')
+
+# Create multiple threads
+thread1 = threading.Thread(target=lambda: asyncio.run(task_with_delay("Thread 1", 2)))
+thread1.daemon = True 
+
+# Start the threads
+thread1.start()
+
 connectionManager: {int:WebSocket}= {}
 
 # WebSocket route to establish a connection
@@ -38,34 +66,14 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
     
     # async def send_notifications():
     print('start')
-    while True:
-        print('before')
-        msg = await get_data()
-        print('after')
-
-        # print(int(msg))
-        if msg is not None:
-            notification = {
-                "id": str(uuid.uuid4()),
-                "title": 'Status Update of your application',
-                "description": 'Please view it in your application!',
-                "avatar": None,
-                "type": 'mail',
-                "createdAt": str(datetime.now().isoformat()),
-                "isUnRead": True,
-                "filteredId": int(msg)
-            }
-        #     print('before send text')
-            try:
-                # await websocket.send_text('hello world')
-                for websocket in connectionManager.values():
-                    await websocket.send_json(notification)
-            except WebSocketDisconnect:
-                del connectionManager[user_id]
-                print('socket disconnected')
-                break
-            except Exception as e:
-                print('e', str(e))
+    try:
+        while True:
+            await websocket.receive_text()
+    except WebSocketDisconnect:
+        del connectionManager[user_id]
+        print(f'deleted: {user_id}')
+    except Exception as e:
+        print('e', str(e))
 
 
     
