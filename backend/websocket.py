@@ -51,7 +51,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                 "description": 'Please view it in your application!',
                 "avatar": None,
                 "type": 'mail',
-                "createdAt": str(datetime.now()),
+                "createdAt": str(datetime.now().isoformat()),
                 "isUnRead": True,
                 "filteredId": int(msg)
             }
@@ -66,10 +66,6 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
                 break
             except Exception as e:
                 print('e', str(e))
-
-    # Create a new thread to send notifications for this WebSocket connection
-    # t = threading.Thread(target=lambda: asyncio.run(send_notifications()))
-    # t.start()
 
 
     

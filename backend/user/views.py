@@ -6,6 +6,7 @@ from datetime import datetime
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.db import transaction
+from django.db.utils import IntegrityError
 import traceback
 from django.contrib.auth.hashers import make_password
 from user.tasks import send_welcome_email
@@ -111,10 +112,9 @@ class AlumniView(APIView):
 
             # Validate required fields
             required_fields = USER_ATTRIBUTES_TO_INCLUDE[1:] + ALUMNI_REQUIRED_FIELD
-            for field in required_fields:
-                if field not in data:
-                    print(field)
-                    return JsonResponse({"success": False, "error": f"Missing required field: {field}"}, status=400)
+            extra_fields = set(required_fields).difference(data)
+            if extra_fields:
+                return JsonResponse({"success": False, "error": f"Missing required field"}, status=400)
 
             # Use a database transaction for atomicity
             with transaction.atomic():
@@ -150,7 +150,11 @@ class AlumniView(APIView):
                 },
                 status=201  # 201 Created status code
             )
-
+        except IntegrityError as e:
+            if  "username" in str(e): 
+                return JsonResponse({"success": False, "error": "Username already exists. Please choose a different one."}, status=400)
+            elif "email" in str(e): 
+                return JsonResponse({"success": False, "error": "Email already exists. Please choose a different one."}, status=400)
         except Exception as e:
             # Handle unexpected errors with a 500 status code
             return JsonResponse({"success": False, "error": str(e)}, status=500)
@@ -299,6 +303,11 @@ class StudentView(APIView):
                 },
                 status=201  # 201 Created status code
             )
+        except IntegrityError as e:
+            if  "username" in str(e): 
+                return JsonResponse({"success": False, "error": "Username already exists. Please choose a different one."}, status=400)
+            elif "email" in str(e): 
+                return JsonResponse({"success": False, "error": "Email already exists. Please choose a different one."}, status=400)
         except Exception as e:
             traceback.print_exc()
             return JsonResponse({"success": False, "error": f'{str(e)}.\n It is either because the username or the email is taken. Please try again'}, status=500)

@@ -113,7 +113,7 @@ class ApplicationView(APIView):
                 # for superuser: return all applications 
                 if request.user.is_superuser:
                     application_list = []
-                    applications = Application.objects.all()
+                    applications = Application.objects.all().order_by('job.id')
                     for application in applications:
                         application_list.append(application.get_application_detail())
                     response = {
@@ -343,4 +343,3 @@ class Alumni_ApplicationView(APIView):
             return JsonResponse({'success': False, 'error': str(e)}, status=400)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
