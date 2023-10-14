@@ -7,3 +7,4 @@ backend/referral/settings.py
 
 .vscode
 dump.rdb
+erl_crash.dump
