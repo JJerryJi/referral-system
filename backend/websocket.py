@@ -33,17 +33,20 @@ async def task_with_delay(thread_name, delay):
     while True:
         key, msg = redis_client.blpop('ws')
         if msg:
+            msg = msg.decode().split(':')
             print('length: ', len(connectionManager))
             for connected in connectionManager.values():
                 notification = {
                     "id": str(uuid.uuid4()),
-                    "title": 'Status Update of your application',
+                    "title": f'Status Update from {msg[2]}',
                     "description": 'Please view it in your application!',
                     "avatar": None,
                     "type": 'mail',
                     "createdAt": str(datetime.now().isoformat()),
                     "isUnRead": True,
-                    "filteredId": int(msg)
+                    "filteredId": int(msg[0]),
+                    "companyName": msg[2], 
+                    "applicationId": int(msg[1])
                 }
                 await connected.send_json(notification)
             print('send message to all!')
@@ -63,8 +66,6 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
     await websocket.accept()
     connectionManager[user_id] = websocket
     print('a new socket is connected')
-    
-    # async def send_notifications():
     print('start')
     try:
         while True:

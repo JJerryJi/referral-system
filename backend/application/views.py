@@ -252,7 +252,7 @@ class ApplicationView(APIView):
                     application.status = new_status
                     application.save()
                     # notify websocket
-                    redis_client.lpush('ws', application.student.user.id)
+                    redis_client.lpush('ws', f'{application.student.user.id}:{application_id}:{application.job.job_company}')
                     # Celery send email task 
                     send_application_status_update_email.delay(email=application.student.user.email, application_id=application_id, job_company=application.job.job_company, username=application.student.user.username)
 

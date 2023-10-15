@@ -13,8 +13,6 @@ from django.conf import settings
 redis_client = settings.REDIS_CLIENT
 
 class ObtainTokenView(APIView):
-    expiration_time = timedelta(days=3)
-
     def get(self, request):
         # Retrieve the token from the query parameter
         cur_token = request.query_params.get('token')
@@ -22,8 +20,10 @@ class ObtainTokenView(APIView):
         try: 
             if cur_token:
                 # Check if the token exists in Redis
-                user_id = int(redis_client.get(cur_token))
-                # print(user_id)
+                id = redis_client.get(cur_token)
+                if not id:
+                    raise ValueError('Session Time Out! Please log in again') 
+                user_id = int(id)
                 if user_id:
                     for student in Student.objects.all():
                         if student.user.id == user_id:
@@ -51,8 +51,6 @@ class ObtainTokenView(APIView):
             if user is not None:
                 # Generate a unique token
                 token = binascii.hexlify(os.urandom(20)).decode()
-                # token = f'{token}:{datetime.now().timestamp()}'
-
                 # Store the token in Redis with an expiration time
                 redis_client.set(token, str(user.id))
                 redis_client.expire(token, 60 * 60)
