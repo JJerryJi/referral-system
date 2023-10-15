@@ -12,7 +12,7 @@ import pytz
 from django.core.exceptions import PermissionDenied
 import traceback
 from django.conf import settings
-from .tasks import send_application_status_update_email
+from .tasks import send_application_status_update_email, send_submit_application_email, send_edit_application_email
 
 # Constants for score values
 APPLY_SCORE = settings.APPLY_SCORE
@@ -28,8 +28,7 @@ class ApplicationView(APIView):
         'resume': 'PDF.file' (required),
         'job_id': 'Integer' (required), 
         'linkedIn': 'url' (required), 
-        'answer' : "" (required),
-
+        'answer' : "str" (required),
         }
         '''
         try:
@@ -79,6 +78,7 @@ class ApplicationView(APIView):
                 )
                 # add one to num_of_applicants
                 job_post.num_of_applicants += 1
+                send_submit_application_email.delay(email=student_applicant.user.email, username=student_applicant.user.username, job_company=job_post.job_company)
                 job_post.save()
                 # print(job_post.num_of_applicants)
 
@@ -224,16 +224,16 @@ class ApplicationView(APIView):
                     elif hasattr(application, key):
                         setattr(application, key, value)
 
+                send_edit_application_email.delay(email=request.user.email, username=request.user.username, job_company=application.job.job_company)
                 # Save the changes
                 application.modified_date = datetime.now()
 
                 application.save()
-                print('success')
 
                 # Return the updated application data
                 response = {
                     'success': True,
-                    'message': f'Successful update for application # {application.id}',
+                    'message': f'Successful update for application {application.id}',
                     'application': application.get_application_detail()
                 }
                 return JsonResponse(response, status=200)
@@ -251,12 +251,10 @@ class ApplicationView(APIView):
                 with transaction.atomic():
                     application.status = new_status
                     application.save()
-                    # websocket connection 
+                    # notify websocket
                     redis_client.lpush('ws', application.student.user.id)
-                    # c[application.student.user.id].send_text('hello world')
                     # Celery send email task 
-                    send_application_status_update_email.delay(email=application.student.user.email)
-                # send_update_status_email.delay(email=application.student.user.email, applicaton_id=application_id)
+                    send_application_status_update_email.delay(email=application.student.user.email, application_id=application_id, job_company=application.job.job_company, username=application.student.user.username)
 
                 response = {
                     'success': True,
@@ -273,74 +271,3 @@ class ApplicationView(APIView):
         except Exception as e:
             traceback.print_exc()
             return JsonResponse({'success': False, 'error': str(e)}, status = 500)
-
-
-class Alumni_ApplicationView(APIView):
-    def get(self, request):
-        '''
-        @request:
-        {
-            "student_id": Integer
-        }
-        '''
-        try:
-            if request.user.role('role') != 'alumni':
-                raise PermissionDenied('You are not authorized to view this application because you are not signed in as alumni.')
-            applications = Application.objects.all()
-            application_info =[]
-            for app in applications:
-            # TODO: Authorization: Check if the logged-in user is the alumni who posted the job
-                if request.user.id == app.job.alumni.user.id:
-                    application_info.append(app.get_application_detail())
-            response = {
-                'success': True,
-                'message': f'Successful get all applications posted by you',
-                'application': application_info
-            }
-            return JsonResponse(response, status=200)
-        except PermissionDenied as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=403)
-        except Exception as e:
-            # Handle unexpected exceptions
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)
-    
-    def put(self, request, application_id):
-        '''
-        @request:
-        {
-            "status": "Selected/Not-Moving-Forward"
-        }
-        '''
-        try:
-            application = Application.objects.get(id=application_id)
-
-            # check if the logged-in user is the alumni who posted the job
-            if request.user.id != application.job.alumni.user.id :
-                raise PermissionDenied('You are not authorized to change the status of this application because it is the job posted by you.')
-
-            # Get the new status from the request data
-            new_status = request.data.get('status')
-
-            # Validate the new status (you can add more validation logic here)
-            if new_status not in ['Selected', 'Not-Moving-Forward']:
-                raise ValueError('Invalid status value. Status must be "Selected" or "Not-Moving-Forward".')
-
-            # Update the application status
-            application.status = new_status
-            application.save()
-
-            response = {
-                'success': True,
-                'message': f'Successfully updated the status of application with ID #{application.id}',
-                'application': application.get_application_detail()
-            }
-            return JsonResponse(response, status=200)
-
-        except Application.DoesNotExist:
-            return JsonResponse({'success': False, 'error': f'Application with this ID #{application_id} does not exist.'}, status=404)
-        except PermissionDenied as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=403)
-        except ValueError as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=400)
-        except Exception as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=500)

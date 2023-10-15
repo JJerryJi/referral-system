@@ -10,7 +10,7 @@ def send_welcome_email(email: str):
     try:
         user = User.objects.filter(email=email).first()
         subject = 'Welcome to Referral Finder'
-        content = f'\tHello, {user.first_name}!\n\tWelcome to our website. Now you can sign in to your account and start explorating various referral opportunities! Wish you all the best finding your dream offer.'
+        content = f'Hello, {user.first_name}!\n\tWelcome to our website. Now you can sign in to your account and start explorating various referral opportunities! Wish you all the best finding your dream offer.\n Best,\nReferral Finder Team'
         recipient_list = [email]
         message = EmailMessage(
             subject,
