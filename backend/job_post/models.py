@@ -32,32 +32,26 @@ class Job_post(models.Model):
     @classmethod
     def get_all_post_info(cls, admin_login=False):
         all_posts = cls.objects.all()
-        job_lists = [cls.get_one_post_by_id(post.id, admin_login=admin_login) for post in all_posts]
+        job_lists = [post.get_one_post(admin_login=admin_login) for post in all_posts]
         return job_lists
     
-    @classmethod
-    def get_one_post_by_id(cls, job_id, permission=False):
-        try: 
-            job_post = cls.objects.get(id=job_id)
-            # if the job_post is not being reviewed, only return limited info
-            if not permission:
-                if job_post.job_review_status == 'In-review':
-                    return {"job_id": job_post.id, 'job_review_status':'In-review'}
-        except Job_post.DoesNotExist:
-            return None 
+    def get_one_post(self, permission=False):
+        if not permission:
+            if self.job_review_status == 'In-review':
+                return {"job_id": self.id, 'job_review_status':'In-review'}
 
         post_info = {
-            'job_id' : job_post.id, 
-            'alumni_id' : job_post.alumni.id,
-            'job_name': job_post.job_name,
-            'job_company' : job_post.job_company,
-            'job_requirement' : job_post.job_requirement, 
-            'job_description' : job_post.job_description,
-            'job_open_status' : job_post.job_open_status,
-            'job_question' : job_post.question, 
-            'num_of_applicants' : job_post.num_of_applicants, 
-            'job_review_status' : job_post.job_review_status,
-            'job_created_time' : job_post.created_time
+            'job_id' : self.id, 
+            'alumni_id' : self.alumni.id,
+            'job_name': self.job_name,
+            'job_company' : self.job_company,
+            'job_requirement' : self.job_requirement, 
+            'job_description' : self.job_description,
+            'job_open_status' : self.job_open_status,
+            'job_question' : self.question, 
+            'num_of_applicants' : self.num_of_applicants, 
+            'job_review_status' : self.job_review_status,
+            'job_created_time' : self.created_time
         }
         
         return post_info

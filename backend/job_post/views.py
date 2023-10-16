@@ -31,11 +31,10 @@ class JobView(APIView):
                 all_posts = Job_post.objects.all().order_by('-created_time')
                 job_lists = []
                 for post in all_posts:
-                    cur_post = Job_post.get_one_post_by_id(post.id, permission=(request.user == post.alumni.user))
+                    cur_post = post.get_one_post(permission=(request.user == post.alumni.user))
                     job_lists.append(cur_post)
             else:
                 raise ValueError('You need to sign in to view job posts')
-            
             response_data = {
                 "success": True,
                 "job_post": job_lists,
@@ -44,16 +43,20 @@ class JobView(APIView):
         
         # Get a single post by id
         else:
+            try: 
+                cur_post = Job_post.objects.all().get(id=Job_post_id)
+            except Job_post.DoesNotExist:
+                return JsonResponse({"succes": False, 'error':'No job with such ID exist'}, status = 404)    
             if request.user.is_superuser:
                 has_student_applied_before = True
-                post = Job_post.get_one_post_by_id(Job_post_id, permission=True)
+                post = cur_post.get_one_post(permission=True)
             elif request.user.role == 'alumni':
                 has_student_applied_before = True
-                post = Job_post.get_one_post_by_id(Job_post_id)
+                post = cur_post.get_one_post()
             elif request.user.role == 'student':
                 has_student_applied_before = False
                 # find student object: 
-                post = Job_post.get_one_post_by_id(Job_post_id)
+                post = cur_post.get_one_post()
                 for student in Student.objects.all():
                     if student.user == request.user: 
                         this_student = student
@@ -61,8 +64,6 @@ class JobView(APIView):
                 if Application.objects.filter(student=this_student, job=Job_post.objects.get(id=Job_post_id)).first():
                     has_student_applied_before = True
                 
-            if post is None: return JsonResponse({"succes": False, 'error':'No job with such ID exist'}, status = 404)
-
             # Calculate view score: 
             with transaction.atomic():
                 # avoid a user to add score twice
@@ -78,7 +79,7 @@ class JobView(APIView):
                 "has_student_applied_before": has_student_applied_before,
                 "job_post": post,
             }
-            
+
             return JsonResponse(response_data, status = 200)
     
     def post(self, request):
@@ -169,7 +170,7 @@ class JobView(APIView):
                         raise ValueError(f'[{key}] in json does not exist in Job_post table. Update Fails')
                 job_post.save()
 
-            return JsonResponse({'success': True, 'message': f'Update Job Post #{job_post.id} is successful!', 'job_post': Job_post.get_one_post_by_id(job_post.id, permission=True)}, status=200)
+            return JsonResponse({'success': True, 'message': f'Update Job Post #{job_post.id} is successful!', 'job_post': job_post.get_one_post(permission=True)}, status=200)
         
         except Job_post.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Job Post is not found. So the update fails!'}, status = 404)
@@ -209,7 +210,7 @@ class AlumniJobView(APIView):
                     alumni = Alumni.objects.all().get(user=request.user)
                     my_posts = Job_post.objects.all().order_by('-created_time').filter(alumni=alumni)
                     # get list of posts
-                    job_lists = [Job_post.get_one_post_by_id(post.id, permission=True) for post in my_posts]
+                    job_lists = [post.get_one_post(permission=True) for post in my_posts]
                 else:
                     raise PermissionDenied('Role: Student are not allowed to view this page.')
             else:
