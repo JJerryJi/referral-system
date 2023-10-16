@@ -16,15 +16,6 @@ class Application(models.Model):
     student = models.ForeignKey(Student, on_delete=models.CASCADE)
     job = models.ForeignKey(Job_post, on_delete=models.CASCADE)
 
-
-    # get the student basic info 
-    def get_student_applicant_info(self):
-        student_info = Student.get_student_info_by_id(self.student.id) 
-        if student_info is not None:
-            return student_info
-        else:
-            raise ValueError(f'get this applicant with student id {self.student.id} info failed')
-
     # get the current application detail 
     def get_application_detail(self):
         response = {

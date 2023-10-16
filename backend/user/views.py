@@ -184,25 +184,29 @@ class StudentView(APIView):
             # Only admin (superuser) has the power to view all profile
             if not student_id:
                 if not request.user.is_superuser:
-                    raise ValueError(
+                    raise PermissionError(
                         'Only the superuser can view all student profile. Permission Denied')
-                student_data = Student.get_all_student_info(
-                    *USER_ATTRIBUTES_TO_INCLUDE, 'password')
+                
                 response_data = {
                     "success": True,
-                    "student": student_data
+                    "student": Student.get_all_student_info(*USER_ATTRIBUTES_TO_INCLUDE, 'password')
                 }
                 return JsonResponse(response_data)
             else:
-                student_data = Student.get_student_info_by_id(
-                    student_id, *USER_ATTRIBUTES_TO_INCLUDE)
-                if student_data is None:
-                    return JsonResponse({"success": False, "message": "No Student data with such id is found"}, status=404)
+                try:
+                    student = Student.objects.all().get(id=student_id)
+                except Student.DoesNotExist:
+                    raise ValueError(f'No Student data with such id ({student_id}) is found')
+                student_data = student.get_student_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE)
                 response_data = {
                     "success": True,
                     "student": student_data
                 }
                 return JsonResponse(response_data, status=200)
+        except ValueError as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=404)
+        except PermissionError as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=401)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
@@ -230,7 +234,7 @@ class StudentView(APIView):
             student.modified_time = datetime.now()
             student.save()
 
-            return JsonResponse({"success": True, "message": "Student updated successfully", "alumni": Student.get_student_info_by_id(student_id, *USER_ATTRIBUTES_TO_INCLUDE)}, status=200)
+            return JsonResponse({"success": True, "message": "Student updated successfully", "student": student.get_student_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE)}, status=200)
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
@@ -298,7 +302,7 @@ class StudentView(APIView):
                 {
                     "success": True,
                     "message": "Student created successfully",
-                    "student": Student.get_student_info_by_id(new_student.id, *USER_ATTRIBUTES_TO_INCLUDE)
+                    "student": new_student.get_student_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE)
                 },
                 status=201  # 201 Created status code
             )
@@ -328,7 +332,7 @@ class StudentView(APIView):
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
-
+# test 
 def send_welcome_email_view(request):
     if request.method == 'GET':
         try:

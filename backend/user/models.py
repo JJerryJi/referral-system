@@ -100,31 +100,26 @@ class Student(models.Model):
         student_list = []
 
         for student in students:
-            student_info = cls.get_student_info_by_id(student.id, *args)
+            student_info = student.get_student_info_by_id(*args)
             student_list.append(student_info)
         
         return student_list
     
 
-    @classmethod
-    def get_student_info_by_id(cls, student_id, *args):
-        try: 
-            student = cls.objects.get(id = student_id)
-        except cls.DoesNotExist:
-            raise ValueError(f"The student with ID #{student_id} does not exist")
+    def get_student_info_by_id(self, *args):
         student_info = {
                 "user": {}, 
-                "student_id" : student.id,
-                "school": student.school,
-                "year_in_school" : student.year_in_school, 
-                "major" : student.major, 
-                "degree": 'Bacholor of Science' if student.degree == 'BS' else 'Master of Science', # render the value
-                "graduation_year": student.graduation_year
+                "student_id" : self.id,
+                "school": self.school,
+                "year_in_school" : self.year_in_school, 
+                "major" : self.major, 
+                "degree": 'Bacholor of Science' if self.degree == 'BS' else 'Master of Science', # render the value
+                "graduation_year": self.graduation_year
             }
         user_info = {}
         for attribute in args:
-            if hasattr(student.user, attribute): 
-                user_info[attribute] = getattr(student.user, attribute)
+            if hasattr(self.user, attribute): 
+                user_info[attribute] = getattr(self.user, attribute)
         
         student_info['user'] = user_info
         return student_info 
