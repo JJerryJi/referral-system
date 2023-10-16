@@ -156,7 +156,6 @@ class AlumniView(APIView):
             elif "email" in str(e): 
                 return JsonResponse({"success": False, "error": "Email already exists. Please choose a different one."}, status=400)
         except Exception as e:
-            # Handle unexpected errors with a 500 status code
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
     def delete(self, request, alumni_id):

@@ -32,11 +32,7 @@ class Job_post(models.Model):
     @classmethod
     def get_all_post_info(cls, admin_login=False):
         all_posts = cls.objects.all()
-        job_lists = []
-
-        for post in all_posts:
-            cur_post = cls.get_one_post_by_id(post.id, admin_login=admin_login) 
-            job_lists.append(cur_post)
+        job_lists = [cls.get_one_post_by_id(post.id, admin_login=admin_login) for post in all_posts]
         return job_lists
     
     @classmethod
@@ -49,6 +45,7 @@ class Job_post(models.Model):
                     return {"job_id": job_post.id, 'job_review_status':'In-review'}
         except Job_post.DoesNotExist:
             return None 
+
         post_info = {
             'job_id' : job_post.id, 
             'alumni_id' : job_post.alumni.id,

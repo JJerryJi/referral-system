@@ -10,11 +10,15 @@ class User(AbstractUser):
         ('alumni', 'Alumni'),
         ('admin', 'Admin')
     ]
+    id = models.AutoField(primary_key=True)
+    first_name = models.CharField(max_length=50, null=False, blank=False)
+    last_name = models.CharField(max_length=30, null=False, blank=False)
+    email = models.EmailField(unique=True, null=False, blank=False) 
     role = models.CharField(max_length=10, choices=ROLES, null=False, blank=False)
     location = models.CharField(max_length=255, null=False, blank=False)
     created_time = models.DateTimeField(auto_now_add=True)
     modified_time = models.DateTimeField(auto_now=True)
-    email = models.EmailField(unique=True)  # Add unique=True to make the email field unique
+
     def __str__(self):
         return self.username
 
