@@ -1,12 +1,10 @@
 import traceback
-import redis
 import os
 import binascii
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.contrib.auth import authenticate
 from user.models import Student, Alumni
-from datetime import timedelta, datetime
 from django.conf import settings
 
 # Initialize a Redis client

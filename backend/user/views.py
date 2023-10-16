@@ -1,4 +1,4 @@
-from django.http import JsonResponse, Http404
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from .models import Alumni, Student, User
 import json
