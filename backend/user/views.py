@@ -47,7 +47,7 @@ class AlumniView(APIView):
                 }
             else:
                 alumni = Alumni.objects.all().get(id=alumni_id)
-                alumni_info = alumni.get_alumni_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE)
+                alumni_info = alumni.get_one_alumni_info(*USER_ATTRIBUTES_TO_INCLUDE)
                 response_data = {
                     "success": True,
                     "alumni": alumni_info,
@@ -86,7 +86,7 @@ class AlumniView(APIView):
             return JsonResponse({
                 "success": True,
                 "message": "Alumni updated successfully",
-                "alumni": alumni.get_alumni_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE),
+                "alumni": alumni.get_one_alumni_info(*USER_ATTRIBUTES_TO_INCLUDE),
             })
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
@@ -144,7 +144,7 @@ class AlumniView(APIView):
                 {
                     "success": True,
                     "message": "Alumni created successfully",
-                    "alumni": new_alumni.get_alumni_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE)
+                    "alumni": new_alumni.get_one_alumni_info(*USER_ATTRIBUTES_TO_INCLUDE)
                 },
                 status=201  # 201 Created status code
             )

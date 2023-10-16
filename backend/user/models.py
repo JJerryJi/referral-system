@@ -41,16 +41,10 @@ class Alumni(models.Model):
     @classmethod
     def get_all_alumni_info(cls, *args):
         all_alumni = cls.objects.all()
-        alumni_list = []
-        
-        # for each alumni, call get_alumni_info_by_id
-        for alumni in all_alumni:
-            alumni_info = alumni.get_alumni_info_by_id(*args)
-            alumni_list.append(alumni_info)
-            
+        alumni_list = [alumni.get_one_alumni_info(*args) for alumni in all_alumni]
         return alumni_list
     
-    def get_alumni_info_by_id(self, *args):
+    def get_one_alumni_info(self, *args):
         alumni_info = {
             "alumni_id": self.id,
         }
