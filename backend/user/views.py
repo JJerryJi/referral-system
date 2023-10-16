@@ -39,25 +39,22 @@ class AlumniView(APIView):
                 if not request.user.is_superuser:
                     raise ValueError(
                         'You cannot view this page, because you are not the superuser. Only the admin can all alumni profiles')
-                alumni_data = Alumni.get_all_alumni_info(
-                    *USER_ATTRIBUTES_TO_INCLUDE)
+                alumni_data = Alumni.get_all_alumni_info(*USER_ATTRIBUTES_TO_INCLUDE)
 
                 response_data = {
                     "success": True,
                     "alumni": alumni_data,
                 }
             else:
-                alumni_info = Alumni.get_alumni_info_by_id(
-                    alumni_id, *USER_ATTRIBUTES_TO_INCLUDE)
-                if alumni_info is None:
-                    return JsonResponse({"success": False, "error": "No Alumni data with such ID is found"}, status=404)
-
+                alumni = Alumni.objects.all().get(id=alumni_id)
+                alumni_info = alumni.get_alumni_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE)
                 response_data = {
                     "success": True,
                     "alumni": alumni_info,
                 }
-
             return Response(response_data, status=200)
+        except Alumni.DoesNotExist:
+            return JsonResponse({'success': False, 'error': f"Alumni with id {alumni_id} does not exist"}, status=404)
         except Exception as e:
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
@@ -75,11 +72,12 @@ class AlumniView(APIView):
             data = json.loads(request.body)
             update_user_profile(alumni.user, data)
 
-            for key, value in data.items():
-                if key == 'role':
-                    raise PermissionError("You cannot change the role! ")
-                if hasattr(alumni, key):
-                    setattr(alumni, key, value)
+            with transaction.atomic():
+                for key, value in data.items():
+                    if key == 'role':
+                        raise PermissionError("You cannot change the role! ")
+                    if hasattr(alumni, key):
+                        setattr(alumni, key, value)
 
             # change the modified time
             alumni.modified_time = datetime.now()
@@ -88,7 +86,7 @@ class AlumniView(APIView):
             return JsonResponse({
                 "success": True,
                 "message": "Alumni updated successfully",
-                "alumni": Alumni.get_alumni_info_by_id(alumni_id, *USER_ATTRIBUTES_TO_INCLUDE),
+                "alumni": alumni.get_alumni_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE),
             })
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)})
@@ -146,7 +144,7 @@ class AlumniView(APIView):
                 {
                     "success": True,
                     "message": "Alumni created successfully",
-                    "alumni": Alumni.get_alumni_info_by_id(new_alumni.id, *USER_ATTRIBUTES_TO_INCLUDE)
+                    "alumni": new_alumni.get_alumni_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE)
                 },
                 status=201  # 201 Created status code
             )
@@ -197,7 +195,7 @@ class StudentView(APIView):
                     student = Student.objects.all().get(id=student_id)
                 except Student.DoesNotExist:
                     raise ValueError(f'No Student data with such id ({student_id}) is found')
-                student_data = student.get_student_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE)
+                student_data = student.get_one_student_info(*USER_ATTRIBUTES_TO_INCLUDE)
                 response_data = {
                     "success": True,
                     "student": student_data
@@ -234,7 +232,7 @@ class StudentView(APIView):
             student.modified_time = datetime.now()
             student.save()
 
-            return JsonResponse({"success": True, "message": "Student updated successfully", "student": student.get_student_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE)}, status=200)
+            return JsonResponse({"success": True, "message": "Student updated successfully", "student": student.get_one_student_info(*USER_ATTRIBUTES_TO_INCLUDE)}, status=200)
         except Exception as e:
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
@@ -302,7 +300,7 @@ class StudentView(APIView):
                 {
                     "success": True,
                     "message": "Student created successfully",
-                    "student": new_student.get_student_info_by_id(*USER_ATTRIBUTES_TO_INCLUDE)
+                    "student": new_student.get_one_student_info(*USER_ATTRIBUTES_TO_INCLUDE)
                 },
                 status=201  # 201 Created status code
             )

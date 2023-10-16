@@ -45,32 +45,24 @@ class Alumni(models.Model):
         
         # for each alumni, call get_alumni_info_by_id
         for alumni in all_alumni:
-            alumni_info = cls.get_alumni_info_by_id(alumni.id, *args)
+            alumni_info = alumni.get_alumni_info_by_id(*args)
             alumni_list.append(alumni_info)
-        
+            
         return alumni_list
     
-    @classmethod
-    def get_alumni_info_by_id(cls, alumni_id, *args):
-        try: 
-            alumni = cls.objects.get(id=alumni_id)
-        except cls.DoesNotExist:
-            return None 
-        
+    def get_alumni_info_by_id(self, *args):
         alumni_info = {
-            "alumni_id": alumni.id,
+            "alumni_id": self.id,
         }
         user_table_info  = {}
-        user_object = alumni.user
-        
         for attribute in args:
-            if hasattr(user_object, attribute):
-                user_table_info[attribute] = getattr(user_object, attribute)
+            if hasattr(self.user, attribute):
+                user_table_info[attribute] = getattr(self.user, attribute)
 
         alumni_info['user'] = user_table_info
-        alumni_info['company_name'] = alumni.company_name
-        alumni_info['modified_time'] = alumni.modified_time
-        alumni_info['created_time'] = alumni.created_time
+        alumni_info['company_name'] = self.company_name
+        alumni_info['modified_time'] = self.modified_time
+        alumni_info['created_time'] = self.created_time
         return alumni_info
 
     class Meta:
@@ -97,16 +89,11 @@ class Student(models.Model):
     @classmethod
     def get_all_student_info(cls, *args):
         students = cls.objects.all()
-        student_list = []
-
-        for student in students:
-            student_info = student.get_student_info_by_id(*args)
-            student_list.append(student_info)
-        
+        student_list = [student.get_one_student_info(*args) for student in students]
         return student_list
     
 
-    def get_student_info_by_id(self, *args):
+    def get_one_student_info(self, *args):
         student_info = {
                 "user": {}, 
                 "student_id" : self.id,
