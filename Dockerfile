@@ -4,8 +4,8 @@
 # If you need more help, visit the Dockerfile reference guide at
 # https://docs.docker.com/engine/reference/builder/
 
-ARG PYTHON_VERSION=3.8.15
-FROM python:${PYTHON_VERSION}-slim as base
+ARG PYTHON_VERSION=3.10
+FROM python:${PYTHON_VERSION} as base
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -33,17 +33,17 @@ RUN adduser \
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
 # into this layer.
 RUN --mount=type=cache,target=/root/.cache/pip \
-    --mount=type=bind,source=requirements.txt,target=requirements.txt \
-    python -m pip install -r requirements.txt
+    --mount=type=bind,source=backend/requirements.txt,target=backend/requirements.txt \
+    python -m pip install -r backend/requirements.txt
 
 # Switch to the non-privileged user to run the application.
 USER appuser
 
 # Copy the source code into the container.
-COPY . .
+COPY ./backend .
 
 # Expose the port that the application listens on.
 EXPOSE 8000
 
 # Run the application.
-CMD python manage.py runserver
+CMD python manage.py runserver 0.0.0.0:8000
