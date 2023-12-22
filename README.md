@@ -6,11 +6,11 @@ Referral Finder is a project designed to simplify the process of managing referr
 
 ### Frontend
 
-The `frontend` directory contains the client-side application, developed using [insert framework/language here]. This interface enables users to interact with Referral Finder, providing intuitive tools for searching, managing, and handling referrals.
+The `frontend` directory contains the client-side application, developed using React and JavaScript. This interface enables users to interact with Referral Finder, providing intuitive tools for searching, managing, and handling referrals.
 
 ### Backend
 
-The `backend` directory houses the server-side application. Built on [insert language/framework here], it manages data, user requests, and database interactions, providing essential endpoints and logic to support the frontend functionalities.
+The `backend` directory houses the server-side application. Built on Django and FastAPI with two separate server, it manages data, user requests, and database interactions, providing essential endpoints and logic to support the frontend functionalities.
 
 ## Running the Project
 
@@ -31,15 +31,18 @@ Ensure the following dependencies are installed before running Referral Finder:
 2. **Build Docker Containers**
 You need to build/run PostgreSQL, Redis, and RabbitMQ Container using official image before starting the project.
     ```bash
-    docker run --name my-postgres -d postgres :5432
+    docker run --name my-postgres -e POSTGRES_DB=['sceret'] -e POSTGRES_USER=['sceret] -e POSTGRES_PASSWORD=['sceret] -d postgres
     ````
     
     ```bash
-    docker run --name my-redis -d redis -p 6379:6379
+    docker run -d --name my-redis -p 6379:6379 redis
     ````
     
      ```bash
-    cd rabbit_container; docker build -t rabbit -p 5672:5672 -p 10000:15672; cd ..
+    cd rabbit_container
+    docker build -t rabbit .
+    docker run -d -p 5672:5672 -p 10000:15672 --name rabbit-container rabbit
+    cd ..
     ````
      
     ```bash
@@ -56,7 +59,7 @@ You need to find the respective IPAddress of PostgreSQL, Redis, and RabbitMQ con
     ```
 At this point, Django server is running in the terminal.
 
-4. **Start the Server**
+4. **Start the Server in Docker**
 Finally, you need to start React server, FastAPI server and Celery server, which provides frontend UI, websocket, ane async email service in other terminal.
 For React:
     ```bash
@@ -74,4 +77,6 @@ For Celery:
   celery -A referral worker --loglevel=INFO
   ```
 
-
+5. **Navigate the App in Browser**
+Frontend will be running on: 
+```bash http://localhost:8087/```
