@@ -1,9 +1,4 @@
 # syntax=docker/dockerfile:1
-
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Dockerfile reference guide at
-# https://docs.docker.com/engine/reference/builder/
-
 ARG PYTHON_VERSION=3.10
 FROM python:${PYTHON_VERSION} as base
 
@@ -16,8 +11,7 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Create a non-privileged user that the app will run under.
-# See https://docs.docker.com/go/dockerfile-user-best-practices/
+# Create a user with elevated privileges
 ARG UID=10001
 RUN adduser \
     --disabled-password \
@@ -32,18 +26,35 @@ RUN adduser \
 # Leverage a cache mount to /root/.cache/pip to speed up subsequent builds.
 # Leverage a bind mount to requirements.txt to avoid having to copy them into
 # into this layer.
+
+RUN apt install -y curl && \
+    curl -sL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt install -y nodejs
+
+# Use production node environment by default.
+ENV NODE_ENV production
+
 RUN --mount=type=cache,target=/root/.cache/pip \
     --mount=type=bind,source=backend/requirements.txt,target=backend/requirements.txt \
     python -m pip install -r backend/requirements.txt
 
+# Copy the source code into the container.
+COPY ./backend ./backend
+
+WORKDIR /app/frontend 
+RUN --mount=type=bind,source=frontend/package.json,target=package.json \
+    --mount=type=bind,source=frontend/package-lock.json,target=package-lock.json \
+    --mount=type=cache,target=/root/.npm \
+    npm ci
+RUN mkdir -p node_modules/.cache && chmod -R 777 node_modules/.cache
+
 # Switch to the non-privileged user to run the application.
 USER appuser
 
-# Copy the source code into the container.
-COPY ./backend .
+COPY ./frontend .
 
 # Expose the port that the application listens on.
-EXPOSE 8000
+EXPOSE 8000 3000
 
 # Run the application.
-CMD python manage.py runserver 0.0.0.0:8000
+CMD python /app/backend/manage.py runserver 0.0.0.0:8000

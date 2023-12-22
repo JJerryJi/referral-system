@@ -13,7 +13,7 @@ export default function LeaderBoardPage() {
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/job/api/leaderboard?page=${page}&per_page=${rowsPerPage}`)
+    fetch(`http://127.0.0.1:8088/job/api/leaderboard?page=${page}&per_page=${rowsPerPage}`)
       .then((response) => {
         if (response.ok) {
           return response.json();

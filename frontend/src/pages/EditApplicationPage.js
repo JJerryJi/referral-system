@@ -43,7 +43,7 @@ export default function EditApplicationPage() {
     // Fetch the existing application data and populate the form fields if needed
     async function fetchApplicationData() {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/application/api/application/${applicationId}`, {
+        const response = await fetch(`http://127.0.0.1:8088/application/api/application/${applicationId}`, {
           headers: {
             Authorization: authToken,
           },
@@ -105,7 +105,7 @@ export default function EditApplicationPage() {
     formDataObject.append('answer', formData.answer);
 
     try {
-      const response = await fetch(`http://127.0.0.1:8000/application/api/application/${applicationId}`, {
+      const response = await fetch(`127.0.0.1:8088/application/api/application/${applicationId}`, {
         method: 'PUT',
         headers: {
           Authorization: authToken,

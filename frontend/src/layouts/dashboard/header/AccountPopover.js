@@ -32,7 +32,7 @@ export default function AccountPopover() {
   const [error, setErrorMsg] = useState('');
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/token?token=${token}`, {
+    fetch(`http://127.0.0.1:8088/api/token?token=${token}`, {
       method: 'GET',
     })
       .then((response) => {
