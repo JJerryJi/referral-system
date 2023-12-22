@@ -30,7 +30,7 @@ export default function EditJobPostPage() {
   const authToken = new Cookies().get('token');
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const jobPostEndpoint = `http://127.0.0.1:8000/job/api/posts/${jobId}`;
+  const jobPostEndpoint = `/job/api/posts/${jobId}`;
 
   // Initialize formData state to store form data
   const [formData, setFormData] = useState({

@@ -40,7 +40,7 @@ export default function DetailedJobPostPage({ role }) {
 
   useEffect(() => {
     // fetch job post info & if_applied
-    fetch(`http://127.0.0.1:8088/job/api/posts/${jobId}`, {
+    fetch(`/job/api/posts/${jobId}`, {
       headers: {
         Authorization: authToken,
       },
@@ -59,7 +59,7 @@ export default function DetailedJobPostPage({ role }) {
   }, []);
 
   const hanldeFavoriteJob = () => {
-    fetch(`http://127.0.0.1:8088/job/api/favorite_jobs`, {
+    fetch(`/job/api/favorite_jobs`, {
       method: 'POST',
       headers: {
         Authorization: authToken,

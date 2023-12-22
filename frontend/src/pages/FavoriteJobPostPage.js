@@ -128,7 +128,7 @@ export default function FavoriteJobPostPage({ authToken }) {
 
   const isNotFound = !filteredUsers.length && !!filterName;
   const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - favoriteJobs.length) : 0;
-  const favoriteJobsEndpoint = `http://127.0.0.1:8000/job/api/favorite_jobs`;
+  const favoriteJobsEndpoint = `/job/api/favorite_jobs`;
 
   const handleDeleteFavJob = () => {
     console.log('success');
@@ -166,7 +166,7 @@ export default function FavoriteJobPostPage({ authToken }) {
         }
 
         const data = await response.json();
-        const applicationInfoResponse = await fetch(`http://127.0.0.1:8088/application/api/application`, {
+        const applicationInfoResponse = await fetch(`/application/api/application`, {
           headers: { Authorization: token },
         });
         if (!applicationInfoResponse.ok) {
