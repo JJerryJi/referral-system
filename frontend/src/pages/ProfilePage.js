@@ -50,7 +50,7 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const response = await fetch(`http://172.17.0.4/api/token?token=${tokenNumber}`, {
+        const response = await fetch(`http://127.0.0.1:8088/api/token?token=${tokenNumber}`, {
           method: 'GET'
         });
 

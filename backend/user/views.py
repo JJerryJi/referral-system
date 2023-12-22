@@ -56,6 +56,7 @@ class AlumniView(APIView):
         except Alumni.DoesNotExist:
             return JsonResponse({'success': False, 'error': f"Alumni with id {alumni_id} does not exist"}, status=404)
         except Exception as e:
+            traceback.print_exc()
             return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
     def put(self, request, alumni_id):
@@ -137,7 +138,8 @@ class AlumniView(APIView):
                     company_name=data['company_name']
                 )
 
-                send_welcome_email.delay(data['email'])
+                # NEED to add rabbitmq container 
+                # send_welcome_email.delay(data['email'])
 
             # return the information of the current alumni
             return JsonResponse(
@@ -154,6 +156,7 @@ class AlumniView(APIView):
             elif "email" in str(e): 
                 return JsonResponse({"success": False, "error": "Email already exists. Please choose a different one."}, status=400)
         except Exception as e:
+            traceback.print_exc()
             return JsonResponse({"success": False, "error": str(e)}, status=500)
 
     def delete(self, request, alumni_id):
