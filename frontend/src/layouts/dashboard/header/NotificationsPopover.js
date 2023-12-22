@@ -62,7 +62,7 @@ export default function NotificationsPopover() {
     };
 
     // Fetch the user's ID using the token
-    fetch(`http://127.0.0.1:8000/api/token?token=${token?.split(' ')[1]}`, {
+    fetch(`http://127.0.0.1:8088/api/token?token=${token?.split(' ')[1]}`, {
       method: 'GET',
     })
       .then((response) => {

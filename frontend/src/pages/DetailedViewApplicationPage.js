@@ -38,7 +38,7 @@ export default function DetailedViewApplicationPage() {
 
   useEffect(() => {
     // get application data
-    fetch(`http://127.0.0.1:8000/application/api/application/${applicationId}`, {
+    fetch(`http://127.0.0.1:8088/application/api/application/${applicationId}`, {
       headers: {
         Authorization: authToken,
       },
@@ -51,7 +51,7 @@ export default function DetailedViewApplicationPage() {
         setApplication(data.application);
 
         if (data.application.student_id) {
-          fetch(`http://127.0.0.1:8000/user/api/student/${data.application.student_id}`)
+          fetch(`http://127.0.0.1:8088/user/api/student/${data.application.student_id}`)
             .then((studentResponse) => {
               return studentResponse.json();
             })
@@ -77,7 +77,7 @@ export default function DetailedViewApplicationPage() {
   // Handler for the "Select this Application" button
   const handleSelectApplication = (status) => {
     // Send the PUT request to update the application status
-    fetch(`http://127.0.0.1:8000/application/api/application/${applicationId}`, {
+    fetch(`http://127.0.0.1:8088/application/api/application/${applicationId}`, {
       method: 'PUT',
       headers: {
         Authorization: authToken, // Add your authorization token here

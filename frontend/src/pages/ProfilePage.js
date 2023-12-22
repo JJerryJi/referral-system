@@ -50,7 +50,7 @@ export default function ProfilePage() {
   useEffect(() => {
     async function fetchProfile() {
       try {
-        const response = await fetch(`http://127.0.0.1:8000/api/token?token=${tokenNumber}`, {
+        const response = await fetch(`http://172.17.0.4/api/token?token=${tokenNumber}`, {
           method: 'GET'
         });
 
@@ -63,12 +63,12 @@ export default function ProfilePage() {
         let studentResponse = null;
         let alumniResponse = null;
         if (data.alumni_id) {
-          alumniResponse = await fetch(`http://127.0.0.1:8000/user/api/alumni/${data.alumni_id}`, {
+          alumniResponse = await fetch(`http://127.0.0.1:8088/user/api/alumni/${data.alumni_id}`, {
             method: 'GET',
             headers: { Authorization: token },
           });
         } else if (data.student_id) {
-          studentResponse = await fetch(`http://127.0.0.1:8000/user/api/student/${data.student_id}`, {
+          studentResponse = await fetch(`http://127.0.0.1:8088/user/api/student/${data.student_id}`, {
             method: 'GET',
             headers: { Authorization: token },
           });

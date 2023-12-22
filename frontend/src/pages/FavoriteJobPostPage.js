@@ -166,7 +166,7 @@ export default function FavoriteJobPostPage({ authToken }) {
         }
 
         const data = await response.json();
-        const applicationInfoResponse = await fetch(`http://127.0.0.1:8000/application/api/application`, {
+        const applicationInfoResponse = await fetch(`http://127.0.0.1:8088/application/api/application`, {
           headers: { Authorization: token },
         });
         if (!applicationInfoResponse.ok) {

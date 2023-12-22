@@ -51,7 +51,7 @@ export default function SignupForm() {
       console.log(formData);
 
       // call backend API according to user type
-      fetch(`http://127.0.0.1:8000/user/api/${formData.role}`, {
+      fetch(`http://127.0.0.1:8088/user/api/${formData.role}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
