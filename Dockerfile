@@ -36,3 +36,5 @@ EXPOSE 8000 3000 8001
 # Run the application.
 CMD python /app/backend/manage.py runserver 0.0.0.0:8000 
 # uvicorn websocket:app --reload --host 0.0.0.0 --port 8001
+# celery -A referral worker --loglevel=INFO
+WORKDIR /app
