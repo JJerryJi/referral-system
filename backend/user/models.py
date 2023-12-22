@@ -22,11 +22,11 @@ class User(AbstractUser):
     def __str__(self):
         return self.username
 
-    def save(self, *args, **kwargs):
-        # Ensure that the role value is one of the predefined choices
-        if self.role not in dict(self.ROLES).keys():
-            raise ValidationError('Validation Error: the input value for role is not in the list of [''student'', ''alumni'', ''admin'']')
-        super().save()
+    # def save(self, *args, **kwargs):
+    #     # Ensure that the role value is one of the predefined choices
+    #     if self.role not in dict(self.ROLES).keys():
+    #         raise ValidationError('Validation Error: the input value for role is not in the list of [''student'', ''alumni'', ''admin'']')
+    #     super().save()
 
 class Alumni(models.Model):
     id = models.AutoField(primary_key=True)

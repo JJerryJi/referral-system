@@ -61,6 +61,12 @@ At this point, Django server is running in the terminal.
 
 4. **Start the Server in Docker**
 Finally, you need to start React server, FastAPI server and Celery server, which provides frontend UI, websocket, ane async email service in other terminal.
+For Django (only when you first run the server or make changes to the Models):
+    ```bash
+    cd backend
+    python manage.py makemigrations
+    python manage.py migrate
+    ```
 For React:
     ```bash
     cd frontend

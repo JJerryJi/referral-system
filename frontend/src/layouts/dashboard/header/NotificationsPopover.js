@@ -56,7 +56,7 @@ export default function NotificationsPopover() {
       };
 
       newSocket.onclose = () => {
-        setTimeout(websocketConnect, 5000, data);
+        setTimeout(websocketConnect, 50000, data);
         console.log('reconnected');
       };
     };

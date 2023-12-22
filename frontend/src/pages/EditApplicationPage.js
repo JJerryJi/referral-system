@@ -105,7 +105,7 @@ export default function EditApplicationPage() {
     formDataObject.append('answer', formData.answer);
 
     try {
-      const response = await fetch(`127.0.0.1:8088/application/api/application/${applicationId}`, {
+      const response = await fetch(`/application/api/application/${applicationId}`, {
         method: 'PUT',
         headers: {
           Authorization: authToken,
@@ -142,7 +142,7 @@ export default function EditApplicationPage() {
               <Scrollbar>
                 {resumeAvailable && (
                   <Link
-                    href={`http://127.0.0.1:8000/${formData.resume_path}`}
+                    href={`http://${DB_HOST}/${formData.resume_path}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     sx={{ mb: 2 }}
