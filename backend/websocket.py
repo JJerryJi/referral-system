@@ -5,7 +5,7 @@ import redis
 from datetime import datetime
 import asyncio
 import threading 
-import time 
+import os 
 
 app = FastAPI()
 
@@ -18,7 +18,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
+redis_client = redis.StrictRedis(host=os.environ.get('REDIS_HOST'), port=6379, db=0)
 
 async def get_data():
     msg = redis_client.lpop('ws')

@@ -39,7 +39,7 @@ export default function NotificationsPopover() {
   useEffect(() => {
     // manage websocket connection & ready to re-connect every 3 seconds
     const websocketConnect = (data) => {
-      const newSocket = new WebSocket(`ws://127.0.0.1:8001/ws/${data.user_id}`);
+      const newSocket = new WebSocket(`ws://127.0.0.1:8002/ws/${data.user_id}`);
 
       newSocket.addEventListener('open', () => {
         console.log('WebSocket connection opened');

@@ -54,7 +54,8 @@ USER appuser
 COPY ./frontend .
 
 # Expose the port that the application listens on.
-EXPOSE 8000 3000
+EXPOSE 8000 3000 8001
 
 # Run the application.
-CMD python /app/backend/manage.py runserver 0.0.0.0:8000
+CMD python /app/backend/manage.py runserver 0.0.0.0:8000 
+# uvicorn websocket:app --reload --host 0.0.0.0 --port 8001
