@@ -56,7 +56,7 @@ export default function SubmitApplicationPage() {
     formDataObject.append('answer', formData.answer);
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/application/api/application', {
+      const response = await fetch('/application/api/application', {
         method: 'POST',
         headers: {
           Authorization: authToken,

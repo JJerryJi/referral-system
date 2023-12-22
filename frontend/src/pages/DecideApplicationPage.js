@@ -116,7 +116,7 @@ export default function DecideApplicationPage({ authToken }) {
   let filteredUsers = applySortFilter(applications, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredUsers.length && !!filterName;
-  const ApplicationEndpoint = `http://127.0.0.1:8000/application/api/application`;
+  const ApplicationEndpoint = `/application/api/application`;
 
   useEffect(() => {
     // Fetch applications with authorization header

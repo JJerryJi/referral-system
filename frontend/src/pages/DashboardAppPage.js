@@ -87,7 +87,7 @@ export default function DashboardAppPage() {
 
   useEffect(() => {
     // Fetch job posts from the API endpoint
-    fetch('http://127.0.0.1:8000/job/api/posts', {
+    fetch('/job/api/posts', {
       headers: {
         Authorization: authToken, // Include your authorization logic here
       },

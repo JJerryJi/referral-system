@@ -10,6 +10,7 @@ from django.db.utils import IntegrityError
 import traceback
 from django.contrib.auth.hashers import make_password
 from user.tasks import send_welcome_email
+from django.conf import settings
 
 USER_ATTRIBUTES_TO_INCLUDE = ['id', 'first_name',
                               'last_name', 'email', 'username', 'location']
@@ -139,7 +140,7 @@ class AlumniView(APIView):
                 )
 
                 # NEED to add rabbitmq container 
-                # send_welcome_email.delay(data['email'])
+                send_welcome_email.delay(data['email'])
 
             # return the information of the current alumni
             return JsonResponse(
@@ -339,7 +340,6 @@ def send_welcome_email_view(request):
         try:
             # Replace 'user@example.com' with the email address to which you want to send the welcome email.
             email_to_send = 'jerryji040506@g.ucla.edu'
-            
             # Trigger the Celery task to send the welcome email asynchronously.
             send_welcome_email.delay(email_to_send)
 

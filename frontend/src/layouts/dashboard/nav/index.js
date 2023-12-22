@@ -54,7 +54,7 @@ export default function Nav({ openNav, onCloseNav }) {
 
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8088/api/token?token=${token}`, {
+    fetch(`/api/token?token=${token}`, {
       method: 'GET',
     })
       .then((response) => {

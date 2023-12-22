@@ -56,7 +56,7 @@ export default function NewJobPage() {
       }
       // proceed with form submission
       try {
-        const response = await fetch('http://127.0.0.1:8000/job/api/posts', {
+        const response = await fetch('/job/api/posts', {
           method: 'POST',
           headers: {
             Authorization: authToken,

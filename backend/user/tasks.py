@@ -9,6 +9,8 @@ from django.core.mail import EmailMessage
 def send_welcome_email(email: str):
     try:
         user = User.objects.filter(email=email).first()
+        if user is None:
+            raise Exception
         subject = 'Welcome to Referral Finder'
         content = f'Hello, {user.first_name}!\n' \
         '\tWelcome to our website. Now you can sign in to your account and start explorating various referral opportunities!\n' \

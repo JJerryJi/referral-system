@@ -121,7 +121,7 @@ export default function MyJobPosts({ authToken }) {
   let filteredJobPosts = applySortFilter(jobPosts, getComparator(order, orderBy), filterName);
 
   const isNotFound = !filteredJobPosts.length && !!filterName;
-  const jobPostsEndpoint = `http://127.0.0.1:8000/job/api/my_posts`;
+  const jobPostsEndpoint = `/job/api/my_posts`;
 
   useEffect(() => {
     // Fetch applications with authorization header
