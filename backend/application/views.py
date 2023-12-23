@@ -89,7 +89,7 @@ class ApplicationView(APIView):
             # Generate a unique filename for the resume PDF based on the unique application's ID
             resume_filename = f"{application.id}_resume.pdf"
             resume_path = os.path.join(media_root, resume_filename)
-
+            # print(resume_path)
             # Save the binary PDF data as a file
             with open(resume_path, 'wb') as resume_file:
                 resume_file.write(pdf_data.read())
@@ -220,6 +220,7 @@ class ApplicationView(APIView):
                         # Save the PDF data in the same path if provided
                         if updated_pdf:
                             with open(resume_path, 'wb') as resume_file:
+                                # print(resume_path)
                                 resume_file.write(updated_pdf.read())
                     elif hasattr(application, key):
                         setattr(application, key, value)

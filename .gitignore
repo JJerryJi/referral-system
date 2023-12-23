@@ -2,7 +2,8 @@ db.sqlite3
 __pycache__
 migrations
 token.txt
-backend/media
+backend/media/*
+!backend/media/Logo.png
 backend/referral/settings.py
 
 .vscode

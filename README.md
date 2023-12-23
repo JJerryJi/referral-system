@@ -55,7 +55,9 @@ You need to find the respective IPAddress of PostgreSQL, Redis, and RabbitMQ con
       -e DB_HOST='[my-postgres-ip]' \
       -e REDIS_HOST='[my-redis-ip]' \
       -e RABBIT_HOST='[rabbit-ip]'\
-     -p 8088:8000 -p 8087:3000 -p 8002:8001 my-app
+     -p 8088:8000 -p 8087:3000 -p 8002:8001 \
+     -v ./resume_data:/app/backend/media 
+    my-app
     ```
 At this point, Django server is running in the terminal.
 

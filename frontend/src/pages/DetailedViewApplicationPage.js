@@ -35,8 +35,6 @@ export default function DetailedViewApplicationPage() {
   const [applicantUser, setApplicantUser] = useState([]);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const DB_HOST = process.env.DB_HOST;
-  console.log(process.env);
   useEffect(() => {
     // get application data
     fetch(`/application/api/application/${applicationId}`, {
@@ -159,9 +157,8 @@ export default function DetailedViewApplicationPage() {
                                 </Stack>
                               </TableCell>
                               <TableCell align="left" sx={{ whiteSpace: 'pre-wrap' }}>
-                                {console.log(`http:/${DB_HOST}/${value}`)}
                                 {key === 'resume_path' ? (
-                                  <a href={`http:/${DB_HOST}/${value}`} target="_blank" rel="noopener noreferrer">
+                                  <a href={`http://localhost:8088${value}`} target="_blank" rel="noopener noreferrer">
                                     Preview Resume
                                   </a>
                                 ) : (

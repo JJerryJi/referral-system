@@ -142,7 +142,7 @@ export default function EditApplicationPage() {
               <Scrollbar>
                 {resumeAvailable && (
                   <Link
-                    href={`http://${DB_HOST}/${formData.resume_path}`}
+                    href={`http://localhost:8088/${formData.resume_path}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     sx={{ mb: 2 }}

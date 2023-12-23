@@ -33,7 +33,7 @@
 LICENSE
 README.md
 rabbit_container/
-# Ignore all files in the 'media' directory
-media/*
-# Preserve the 'logo.png' file inside the 'media' directory
-!media/logo.png
+
+**/media/*
+# Preserve the 'Logo.png' file inside the 'media' directory
+!**/media/Logo.png
