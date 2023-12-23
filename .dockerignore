@@ -35,5 +35,4 @@ README.md
 rabbit_container/
 
 **/media/*
-# Preserve the 'Logo.png' file inside the 'media' directory
 !**/media/Logo.png

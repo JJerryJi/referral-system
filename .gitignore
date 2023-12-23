@@ -2,8 +2,8 @@ db.sqlite3
 __pycache__
 migrations
 token.txt
-backend/media/*
-!backend/media/Logo.png
+/backend/media/*
+!/backend/media/Logo.png
 backend/referral/settings.py
 
 .vscode
@@ -12,3 +12,4 @@ erl_crash.dump
 /pg_data/*
 /resume_data/*
 !/resume_data/sample.txt
+!/resume_data/Logo.png
