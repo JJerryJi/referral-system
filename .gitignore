@@ -9,4 +9,6 @@ backend/referral/settings.py
 .vscode
 dump.rdb
 erl_crash.dump
-/pg_data
+/pg_data/*
+/resume_data/*
+!/resume_data/sample.txt
