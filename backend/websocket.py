@@ -65,8 +65,8 @@ connectionManager: {int:WebSocket}= {}
 async def websocket_endpoint(websocket: WebSocket, user_id: int):
     await websocket.accept()
     connectionManager[user_id] = websocket
-    print('a new socket is connected')
-    print('start')
+    # print('a new socket is connected')
+    # print('start')
     try:
         while True:
             await websocket.receive_text()
@@ -76,5 +76,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: int):
     except Exception as e:
         print('e', str(e))
 
-
-    
+# @app.get('/test')
+# async def get():
+#     print('test endpoint')
+#     return {"test": 'good'}

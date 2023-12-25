@@ -33,8 +33,9 @@ COPY ./frontend /app/frontend
 # Expose the port that the application listens on.
 EXPOSE 8000 3000 8001
 
-# Run the application.
-CMD python /app/backend/manage.py runserver 0.0.0.0:8000 
+# Define the command to run when the container starts
+CMD ["./start_project.sh"]
+
 # uvicorn websocket:app --reload --host 0.0.0.0 --port 8001
 # celery -A referral worker --loglevel=INFO
 WORKDIR /app

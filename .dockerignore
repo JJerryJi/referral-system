@@ -33,6 +33,4 @@
 LICENSE
 README.md
 rabbit_container/
-
-**/media/*
-!**/media/Logo.png
+**/dump.rdb

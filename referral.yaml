@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: my-pod
+spec:
+  containers:
+  - name: referral-container # Give a name to the container
+    image: my-app:latest
+    ports:
+    - containerPort: 8000
+    - containerPort: 3000
+    - containerPort: 8001
