@@ -29,6 +29,7 @@ RUN --mount=type=bind,source=frontend/package.json,target=package.json \
 # Copy the source code into the container.
 COPY ./backend /app/backend
 COPY ./frontend /app/frontend
+COPY ./start_project.sh /app/start_project.sh
 
 # Expose the port that the application listens on.
 EXPOSE 8000 3000 8001

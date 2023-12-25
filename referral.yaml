@@ -1,12 +1,41 @@
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
-  name: my-pod
+  name: my-deployment
 spec:
-  containers:
-  - name: referral-container # Give a name to the container
-    image: my-app:latest
-    ports:
-    - containerPort: 8000
-    - containerPort: 3000
-    - containerPort: 8001
+  replicas: 1 # Adjust the number of replicas as needed
+  selector:
+    matchLabels:
+      app: my-app
+  template:
+    metadata:
+      labels:
+        app: my-app
+    spec:
+      containers:
+      - name: referral
+        image: jerryji040506/referral:v0.0.3
+        ports:
+        - containerPort: 8000
+        - containerPort: 3000
+        - containerPort: 8001
+        env:
+        - name: DB_HOST
+          value: "10.244.0.20" 
+        - name: REDIS_HOST
+          value: "10.244.0.26" 
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: my-service
+spec:
+  selector:
+    app: my-app
+  ports:
+    - name: react
+      port: 80
+      targetPort: 3000
+    - name: django
+      port: 8088
+      targetPort: 8000
