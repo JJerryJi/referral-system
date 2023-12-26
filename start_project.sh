@@ -12,7 +12,7 @@ npm start &
 # Move back to the main directory and start Uvicorn server for backend
 cd ../backend
 uvicorn websocket:app --reload --host 0.0.0.0 --port 8001 &
-# celery -A referral worker --loglevel=INFO &
+celery -A referral worker --loglevel=INFO &
 
 # Keep the script running
 while true; do

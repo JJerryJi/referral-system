@@ -14,4 +14,4 @@ erl_crash.dump
 !/resume_data/sample.txt
 !/resume_data/Logo.png
 
-*.yaml
+scerets.yaml

@@ -18,13 +18,9 @@ spec:
         image: postgres:latest
         ports:
         - containerPort: 5432
-        env:
-        - name: POSTGRES_DB
-          value: referral_system
-        - name: POSTGRES_USER
-          value: referral_user
-        - name: POSTGRES_PASSWORD
-          value: jerry
+        envFrom:
+        - configMapRef:
+            name: postgres-config
         volumeMounts:
         - name: postgres-storage
           mountPath: /var/lib/postgresql/data
@@ -36,3 +32,15 @@ spec:
       resources:
         requests:
           storage: 1Gi
+
+---
+apiVersion: v1
+kind: Service # ADD IP HASH configuration
+metadata:
+  name: pg-service
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432  # PostgreSQL default port

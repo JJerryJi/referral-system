@@ -1,3 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: resume-volume-pvc  # Name of the PVC
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 100Mi  # Size of the storage
+
+--- 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -14,16 +26,25 @@ spec:
     spec:
       containers:
       - name: referral
-        image: jerryji040506/referral:v0.0.3
+        image: jerryji040506/referral:v0.0.4
         ports:
         - containerPort: 8000
         - containerPort: 3000
         - containerPort: 8001
         env:
         - name: DB_HOST
-          value: "10.244.0.20" 
+          value: "pg-service"  # match pg-service name
         - name: REDIS_HOST
-          value: "10.244.0.26" 
+          value: "redis-service"  # match redis-service name
+        - name: RABBIT_HOST
+          value: "rabbit-service"  # match rabbit-service name
+        volumeMounts:
+        - name: resume-volume
+          mountPath: /app/backend/media # match resume-volume
+      volumes:
+        - name: resume-volume
+          persistentVolumeClaim:
+            claimName: resume-volume-pvc  # Use the PVC name here
 ---
 kind: Service
 apiVersion: v1
@@ -34,8 +55,11 @@ spec:
     app: my-app
   ports:
     - name: react
-      port: 80
+      port: 3000
       targetPort: 3000
     - name: django
-      port: 8088
+      port: 8000
       targetPort: 8000
+    - name: fastapi
+      port: 8002
+      targetPort: 8001
