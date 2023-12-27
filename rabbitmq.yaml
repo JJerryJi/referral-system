@@ -15,7 +15,6 @@ spec:
     spec:
       containers:
         - name: rabbitmq
-          # image: jerryji040506/rabbitmq:latest
           image: amd64/rabbitmq # using rabbitmq's version that supports linux x86-64
           imagePullPolicy: IfNotPresent
           ports:
