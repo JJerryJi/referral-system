@@ -34,9 +34,9 @@ COPY ./start_project.sh /app/start_project.sh
 # Expose the port that the application listens on.
 EXPOSE 8000 3000 8001
 
+WORKDIR /app
 # Define the command to run when the container starts
 CMD ["./start_project.sh"]
 
 # uvicorn websocket:app --reload --host 0.0.0.0 --port 8001
 # celery -A referral worker --loglevel=INFO
-WORKDIR /app

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: rabbitmq
+  name: rabbitmq-statefulset
 spec:
   serviceName: "rabbitmq"
   replicas: 1
@@ -15,7 +15,8 @@ spec:
     spec:
       containers:
         - name: rabbitmq
-          image: jerryji040506/rabbitmq:latest
+          # image: jerryji040506/rabbitmq:latest
+          image: amd64/rabbitmq # using rabbitmq's version that supports linux x86-64
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5672

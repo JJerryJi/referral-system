@@ -26,7 +26,7 @@ spec:
     spec:
       containers:
       - name: referral
-        image: jerryji040506/referral:v0.0.4
+        image: jerryji040506/referral:linux
         ports:
         - containerPort: 8000
         - containerPort: 3000
