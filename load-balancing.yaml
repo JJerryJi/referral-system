@@ -3,10 +3,10 @@ kind: Ingress
 metadata:
   name: my-ingress
   annotations:
-    kubernetes.io/ingress.class: "alb"
     alb.ingress.kubernetes.io/scheme: internet-facing
     alb.ingress.kubernetes.io/target-type: ip # Specifies that the target type is IP
 spec:
+  ingressClassName: "alb" 
   rules:
     - http:
         paths:
@@ -87,7 +87,7 @@ spec:
               service:
                 name: my-service
                 port:
-                  number: 8001
+                  number: 8002
             path: /ws  # Assuming WebSocket connections use this path
             pathType: Prefix
 

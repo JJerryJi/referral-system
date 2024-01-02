@@ -158,7 +158,7 @@ export default function DetailedViewApplicationPage() {
                               </TableCell>
                               <TableCell align="left" sx={{ whiteSpace: 'pre-wrap' }}>
                                 {key === 'resume_path' ? (
-                                  <a href={`http://localhost:8088${value}`} target="_blank" rel="noopener noreferrer">
+                                  <a href={value} target="_blank" rel="noopener noreferrer">
                                     Preview Resume
                                   </a>
                                 ) : (
