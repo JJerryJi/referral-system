@@ -26,6 +26,8 @@ RUN --mount=type=bind,source=frontend/package.json,target=package.json \
     --mount=type=cache,target=/root/.npm \
     npm ci
 
+RUN apt install -y vim
+
 # Copy the source code into the container.
 COPY ./backend /app/backend
 COPY ./frontend /app/frontend
