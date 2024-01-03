@@ -77,7 +77,7 @@ This folder hosts required files of `Helm` for the deployment of Kubernetes on A
 
 ## 2. Using AWS EKS
 
-Please checkout the `deployment.md` for more details
+Please check out the `deployment.md` for more details [here](https://github.com/JJerryJi/referral-system/blob/main/deployment.md).
 
 ------------------------------- 
 

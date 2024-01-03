@@ -1,4 +1,4 @@
-# Deployment Notes on AWS EKS
+# Deployment Notes with AWS EKS
 
 ## Step 1: setup kubectl
 First, you need to have appropriate version of `kubectl`, which is Kubernetes `1.27` in this case.
@@ -53,7 +53,7 @@ If you see two nodes/pods running, then it means this step is successful.
 
 Right now, the initial setup is complete. You can start deploying your application to it. 
 
-## Step 5: Sample Deployment
+## Step 5: Sample Deployment (using Port-forward strategy for only local-testing)
 You can run the following yaml files in the git repo to setup the `statefulset` and `deployment` resources. 
 After that, you can forward the port by 
 ```
@@ -68,6 +68,56 @@ kubectl port-forward 8002:8002
 
 Then, you can access the React frontend via `http://localhost:3000` and Django Admin Page via `http://localhost:8088/admin`.
 
+
+## Step 6: Exposing Your Service with an Ingress Resource
+You can choose to expose the service using `ingress` resource. Ingress resources are a powerful way to manage access to your services from outside the Kubernetes cluster.
+
+Follow the official [instructions](https://docs.aws.amazon.com/eks/latest/userguide/alb-ingress.html) to setup AWS ALB Ingress Controller.
+
+With the ALB Ingress Controller installed, you can now create an Ingress resource. Here is a sample YAML configuration for an Ingress resource:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: example-ingress
+  annotations:
+    kubernetes.io/ingress.class: "alb"
+    alb.ingress.kubernetes.io/scheme: internet-facing
+spec:
+  ingressClassName: alb
+  rules: # define your rules for routing
+  - http:
+      paths:
+      - path: /testpath 
+        pathType: Prefix
+        backend:
+          service:
+            name: test
+            port:
+              number: 8000
+```
+
+After applying this yaml file, use the `kubectl get ingress` command to find the URL assigned to your Ingress. And you will be able to access the website via this URL. 
+
+The command output will look something like this:
+
+```
+NAME              CLASS   HOSTS   ADDRESS                                                                  PORTS   AGE
+example-ingress   alb     *       example-ingress-123456789.us-west-2.elb.amazonaws.com                     80      10m
+```
+
+## Step 7: Manage Deployment with Helm (Production)
+Helm is a powerful tool for managing Kubernetes applications. All previous yaml files are correctly compiled as templates in `helm` folder.
+
+### Deploying the Chart
+Use the command `helm install my-release ./helm` to deploy the chart to your Kubernetes cluster. You can replace `my-release` with your desired release name
+
+### Updating the Deployment
+Use the command `helm upgrade my-release ./helm` if you make changes to your chart and need to apply them.
+
+### Rolling back
+Use the command `helm rollback my-release` if you want to go back to a previous version in case something goes wrong.
 
 ## Notes 
 ### Common Problem 1: CSI driver add-on setup for Storage Class 
