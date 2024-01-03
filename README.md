@@ -2,7 +2,15 @@
 
 ## Overview
 
-Referral Finder is a project designed to simplify the process of managing referrals. It comprises frontend and backend components that seamlessly run within Docker containers.
+Referral Finder, a project focused on streamlining the process of obtaining industry referrals, utilizes a microservices architecture containerized with Docker. This architecture ensures modularity and ease of deployment. 
+
+For deployment, the project leverages Helm, a tool that simplifies the management of Kubernetes applications, on Amazon Web Services (AWS) Elastic Kubernetes Service (EKS). It employs Kubernetes resources like Deployment for managing stateless applications, StatefulSet for stateful applications, and Service for networking. 
+
+Additionally, Kubernetes Ingress is implemented for external access. This configuration not only facilitates efficient load balancing but also ensures the effective routing of external traffic to the appropriate microservices, enhancing overall system performance and reliability.
+
+## Demo 
+
+
 
 ### Frontend
 
@@ -26,6 +34,7 @@ Ensure the following dependencies are installed before running Referral Finder:
 
    ```bash
    git clone https://github.com/yourusername/referral-finder.git
+   git checkout docker
    ```
 
 2. **Build & Run Docker Containers**
