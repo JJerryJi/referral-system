@@ -12,7 +12,7 @@ app = FastAPI()
 # Allow WebSocket connections from the React frontend's domain
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://127.0.0.1:3000", "ws://127.0.0.1:3000"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

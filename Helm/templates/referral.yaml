@@ -1,7 +1,12 @@
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: resume-volume-pvc  # Name of the PVC
+  name: resume-volume-pvc
+  labels:
+    app.kubernetes.io/managed-by: Helm
+  annotations:
+    meta.helm.sh/release-name: {{ .Release.Name }}
+    meta.helm.sh/release-namespace: default
 spec:
   accessModes:
     - ReadWriteOnce
@@ -13,9 +18,9 @@ spec:
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-deployment
+  name: {{ .Release.Name }}-deployment
 spec:
-  replicas: 1 # Adjust the number of replicas as needed
+  replicas: {{ .Values.replicaCouxnt }}
   selector:
     matchLabels:
       app: my-app
@@ -34,11 +39,11 @@ spec:
         - containerPort: 8001
         env:
         - name: DB_HOST
-          value: "pg-service"  # match pg-service name
+          value: {{.Release.Name}}-pg-service # match pg-service name
         - name: REDIS_HOST
-          value: "redis-service"  # match redis-service name
+          value: {{.Release.Name}}-redis-service  # match redis-service name
         - name: RABBIT_HOST
-          value: "rabbit-service"  # match rabbit-service name
+          value: {{.Release.Name}}-rabbit-service  # match rabbit-service name
         volumeMounts:
         - name: resume-volume
           mountPath: /app/backend/media # match resume-volume
@@ -50,7 +55,7 @@ spec:
 kind: Service
 apiVersion: v1
 metadata:
-  name: my-service
+  name: {{.Release.Name}}-my-service
 spec:
   selector:
     app: my-app

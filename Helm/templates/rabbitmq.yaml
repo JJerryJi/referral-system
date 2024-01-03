@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: rabbitmq-statefulset
+  name: {{.Release.Name}}-rabbitmq-statefulset
 spec:
   serviceName: "rabbitmq"
   replicas: 1
@@ -41,7 +41,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: rabbit-service
+  name: {{.Release.Name}}-rabbit-service
 spec:
   selector:
     app: rabbitmq

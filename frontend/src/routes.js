@@ -1,4 +1,4 @@
-import { Navigate, useRoutes } from 'react-router-dom';
+import { Navigate, useNavigate, useRoutes } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import Cookies from 'universal-cookie'
 // layouts
@@ -31,6 +31,16 @@ export default function Router() {
   const authToken = cookies.get('token');
   const token = authToken?.split(' ')[1]; // Access the token here
   const [role, setRole] = useState(); 
+  const navigate = useNavigate();
+  
+  useEffect(() => {
+    // Check if the token is null when the component mounts
+    if (!authToken) {
+      // If token is null, redirect to the login page
+      navigate('/login');
+    }
+    // This effect should run only once when the component mounts, hence the empty dependency array
+  }, []);
 
   useEffect(() => {
     fetch(`/api/token?token=${token}`, {
