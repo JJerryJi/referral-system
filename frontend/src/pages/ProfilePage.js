@@ -59,7 +59,7 @@ export default function ProfilePage() {
         }
 
         const data = await response.json();
-        console.log(data);
+        // console.log(data);
         let studentResponse = null;
         let alumniResponse = null;
         if (data.alumni_id) {
@@ -78,11 +78,11 @@ export default function ProfilePage() {
 
         if (alumniResponse) {
           const userData = await alumniResponse.json();
-          console.log(userData);
+          // console.log(userData);
           setProfileData(userData.alumni);
         } else if (studentResponse) {
           const userData = await studentResponse.json();
-          console.log(userData.student);
+          // console.log(userData.student);
           setProfileData(userData.student);
         }
       } catch (error) {

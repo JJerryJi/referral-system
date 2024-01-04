@@ -26,7 +26,7 @@ export default function EditApplicationPage() {
   const { applicationId } = useParams();
   const navigate = useNavigate();
   const authToken = new Cookies().get('token');
-  console.log(applicationId);
+  // console.log(applicationId);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [resumeAvailable, setResumeAvailable] = useState(false);
@@ -53,14 +53,14 @@ export default function EditApplicationPage() {
           //   console.log("Data received from backend:", data);
 
           // populate the field with
-          console.log(data);
+          // console.log(data);
           setFormData(data.application);
           if (data.application?.resume_path) {
             setResumeAvailable(true);
           }
         } else {
           const data = await response.json();
-          console.log(data);
+          // console.log(data);
           setErrorMessage(data.error);
           setSuccessMessage('');
         }
@@ -113,10 +113,10 @@ export default function EditApplicationPage() {
         body: formDataObject, // Using FormData for multipart/form-data,
       });
       const data = await response.json();
-      console.log('data:', data);
+      // console.log('data:', data);
 
       if (data.success === true) {
-        console.log('Update of Your Application submitted successfully');
+        // console.log('Update of Your Application submitted successfully');
         setSuccessMessage(data.message);
         setErrorMessage('');
       } else {

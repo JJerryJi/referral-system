@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Cookies from "universal-cookie";
 // @mui
-import { Link, Stack, IconButton, InputAdornment, TextField, Checkbox } from '@mui/material';
+import { Link, Stack, IconButton, InputAdornment, TextField, Alert } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/iconify';
@@ -17,6 +17,8 @@ export default function LoginForm() {
     username: '',
     password: '',
   });
+
+  const [message, setMessage] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -44,13 +46,12 @@ export default function LoginForm() {
         // For example, you can redirect the user to the dashboard.
         const data = await response.json()
         cookies.set('token', `Token ${data.token}`, { path: '/'});
-        console.log(data.token);
-        console.log(cookies.get('token'));
+        navigate('/job-posts');
 
-        navigate('/', { replace: true });
       } else {
         // Handle login failure, display an error message, etc.
         console.error('Login failed');
+        setMessage('Login Failed');
       }
     } catch (error) {
       console.error('An error occurred:', error);
@@ -94,6 +95,8 @@ export default function LoginForm() {
       <LoadingButton fullWidth size="large" type="submit" variant="contained" onClick={handleClick}>
         Login
       </LoadingButton>
+
+    {message === 'Login Failed' && <Alert sx={{ justifyContent: 'center', marginTop: '10px' }}>{message}</Alert> }
     </>
   );
 }

@@ -34,7 +34,7 @@ export default function AppNewsUpdate({
 }) {
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
-    console.log(newPage);
+    // console.log(newPage);
   };
 
   const handleChangeRowsPerPage = (event) => {

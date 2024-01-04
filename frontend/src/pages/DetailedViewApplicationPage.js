@@ -29,7 +29,7 @@ import { fDateTime } from '../utils/formatTime';
 export default function DetailedViewApplicationPage() {
   const { applicationId } = useParams();
   const authToken = new Cookies().get('token');
-  console.log(applicationId);
+  // console.log(applicationId);
   const [application, setApplication] = useState([]);
   const [applicant, setApplicant] = useState([]);
   const [applicantUser, setApplicantUser] = useState([]);
@@ -108,7 +108,7 @@ export default function DetailedViewApplicationPage() {
 
   const handleSelection = () => {
     handleSelectApplication('Selected');
-    console.log('selected');
+    // console.log('selected');
   };
 
   const handleReject = () => {

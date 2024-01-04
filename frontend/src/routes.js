@@ -40,7 +40,7 @@ export default function Router() {
       navigate('/login');
     }
     // This effect should run only once when the component mounts, hence the empty dependency array
-  }, []);
+  }, [authToken]);
 
   useEffect(() => {
     fetch(`/api/token?token=${token}`, {
@@ -55,7 +55,6 @@ export default function Router() {
         }
         else if(data.alumni_id){
           setRole('alumni');
-          console.log(role);
         }
       })
       .catch((error) => {

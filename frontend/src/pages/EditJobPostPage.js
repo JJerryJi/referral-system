@@ -50,7 +50,7 @@ export default function EditJobPostPage() {
         });
         const data = await response.json();
         setFormData(data?.job_post);
-        console.log(data.job_post);
+        // console.log(data.job_post);
       } catch (error) {
         console.log('Error fetching job posts:', error);
         throw error;

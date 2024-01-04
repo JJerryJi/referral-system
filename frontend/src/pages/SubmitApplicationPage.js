@@ -23,7 +23,7 @@ export default function SubmitApplicationPage() {
   const navigate = useNavigate();
   const authToken = new Cookies().get('token');
   const { jobId } = useParams();
-  console.log(jobId);
+  // console.log(jobId);
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
@@ -66,7 +66,7 @@ export default function SubmitApplicationPage() {
 
       // You can handle the response based on your requirements
       const data = await response.json();
-      console.log('data:', data);
+      // console.log('data:', data);
 
       // Optionally, you can navigate or perform other actions here
       if (data.success===true) {

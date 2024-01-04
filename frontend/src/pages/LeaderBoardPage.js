@@ -30,7 +30,7 @@ export default function LeaderBoardPage() {
             .map((key) => data[key]);
           // Set the job posts in the state
           setLeadingPosts(jobPosts);
-          console.log(jobPosts);
+          // console.log(jobPosts);
         } else {
           throw new Error('Invalid data');
         }

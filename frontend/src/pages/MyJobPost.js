@@ -47,7 +47,7 @@ const TABLE_HEAD = [
 
 export default function MyJobPosts({ authToken }) {
   const token = authToken;
-  console.log(token);
+  // console.log(token);
   const navigate = useNavigate();
 
   // multiple page design

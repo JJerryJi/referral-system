@@ -58,7 +58,7 @@ BlogPostCard.propTypes = {
 
 export default function BlogPostCard({ post, index }) {
   const { cover, title, view, comment, share, author, createdAt } = post;
-  console.log(createdAt);
+  // console.log(createdAt);
   const latestPostLarge = index === 0;
   const latestPost = index === 1 || index === 2;
 

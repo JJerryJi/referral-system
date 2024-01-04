@@ -64,7 +64,7 @@ export default function FavoriteJobPostPage({ authToken }) {
   const handleOpenMenu = (event, favoriteJobId) => {
     setOpen(event.currentTarget);
     setSelectedFavoriteJobId(favoriteJobId);
-    console.log('fav id', favoriteJobId);
+    // console.log('fav id', favoriteJobId);
   };
 
   const handleCloseMenu = () => {
@@ -131,7 +131,7 @@ export default function FavoriteJobPostPage({ authToken }) {
   const favoriteJobsEndpoint = `/job/api/favorite_jobs`;
 
   const handleDeleteFavJob = () => {
-    console.log('success');
+    // console.log('success');
     fetch(favoriteJobsEndpoint.concat('/').concat(selectedFavoriteJobId), {
       method: 'DELETE',
       headers: {
@@ -146,7 +146,7 @@ export default function FavoriteJobPostPage({ authToken }) {
           setSuccessMessage(data.message);
           setOpen(null);
         }
-        console.log(data);
+        // console.log(data);
       })
       .catch((error) => console.log(error));
   };

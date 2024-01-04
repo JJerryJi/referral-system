@@ -36,7 +36,7 @@ export default function DetailedJobPostPage({ role }) {
 
   const [applied, setApplied] = useState('');
   // const [favoriteJob, setFavoriteJob] = useState(null);
-  console.log(authToken);
+  // console.log(authToken);
 
   useEffect(() => {
     // fetch job post info & if_applied
@@ -47,9 +47,9 @@ export default function DetailedJobPostPage({ role }) {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         setApplied(data.has_student_applied_before);
-        console.log(applied);
+        // console.log(applied);
         setJobPost(data.job_post);
       })
       .catch((error) => {
@@ -69,7 +69,7 @@ export default function DetailedJobPostPage({ role }) {
     })
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
+        // console.log(data);
         if (data.success === false) {
           setErrMsg(data.error);
           setSuccessMsg('');

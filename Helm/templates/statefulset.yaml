@@ -15,8 +15,7 @@ spec:
     spec:
       containers:
         - name: rabbitmq
-          image: amd64/rabbitmq # using rabbitmq's version that supports linux x86-64
-          imagePullPolicy: IfNotPresent
+          image: "{{.Values.rabbitmq.registry}}/{{.Values.rabbitmq.repository}}:{{.Values.rabbitmq.tag}}"
           ports:
             - containerPort: 5672
             - containerPort: 15672  # Management UI
@@ -55,7 +54,7 @@ spec:
     spec:
       containers:
       - name: redis
-        image: redis:latest
+        image: "{{ .Values.redis.registry }}/{{ .Values.redis.repository}}:{{ .Values.redis.tag}}"
         ports:
         - containerPort: 6379
         volumeMounts:
@@ -89,7 +88,7 @@ spec:
     spec:
       containers:
         - name: postgres
-          image: postgres:latest
+          image: "{{.Values.pg.registry}}/{{.Values.pg.repository}}:{{.Values.pg.tag}}"
           ports:
             - containerPort: 5432
           envFrom:
@@ -109,4 +108,4 @@ spec:
         resources:
           requests:
             storage: 1Gi
-        storageClassName: gp2
+        storageClassName: {{.Values.storageClassName}}

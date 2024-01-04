@@ -48,7 +48,7 @@ export default function SignupForm() {
       // Combine graduation_year and graduation_month into a date-time string
       formData.graduation_year = `${formData.year}-${String(formData.graduation_month).padStart(2, '0')}-01T00:00:00`;
 
-      console.log(formData);
+      // console.log(formData);
 
       // call backend API according to user type
       fetch(`/user/api/${formData.role}`, {
@@ -68,7 +68,7 @@ export default function SignupForm() {
             setErrorMessage(data.error);
           } else if (data.success) {
             setSuccessMessage(data.message);
-            console.log(successMessage);
+            // console.log(successMessage);
             setErrorMessage(null);
           }
           // navigate('/login');
@@ -191,7 +191,7 @@ export default function SignupForm() {
         variant="contained"
         onClick={() => {
           handleSubmit();
-          console.log(formData);
+          // console.log(formData);
         }}
       >
         Signup

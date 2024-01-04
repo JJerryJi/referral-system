@@ -6,3 +6,23 @@ referral:
   username : jerryji040506
   repository: referral
   tag: linux
+  imagePullPolicy: Always
+
+pg: 
+  registry : docker.io
+  repository: postgres
+  tag: latest
+
+redis:
+  registry: docker.io
+  repository: redis
+  tag: latest
+
+rabbitmq: 
+  registry: docker.io
+  repository: rabbitmq
+  tag: latest
+
+resume_mounted_path: /app/backend/media
+
+storageClassName: gp2

@@ -88,5 +88,12 @@ spec:
                 name: {{.Release.Name}}-my-service
                 port:
                   number: 8001
-            path: /ws  # Assuming WebSocket connections use this path
+            path: /ws  
             pathType: Prefix
+          # - backend:
+          #     service:
+          #       name: {{.Release.Name}}-rabbit-service
+          #       port:
+          #         number: 15672
+          #   path: /#
+          #   pathType: Prefix

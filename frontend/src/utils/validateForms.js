@@ -2,7 +2,7 @@ export function validateJobPostForm(formData) {
   const errors = {};
 
   // Validate job_name
-  const jobNameValidator = /^[a-zA-Z0-9\s-@_()]{10,50}$/;
+  const jobNameValidator = /^[a-zA-Z0-9,\s-@_()]{10,50}$/;
   if (!formData.job_name.trim()) {
     errors.job_name = 'Job Name is required';
   } else if (!jobNameValidator.test(formData.job_name)) {
@@ -11,7 +11,7 @@ export function validateJobPostForm(formData) {
   }
 
   // Validate job_company
-  const jobCompanyValidator = /^[a-zA-Z0-9\s\-()_[\]!@]{3,64}$/;
+  const jobCompanyValidator = /^[a-zA-Z0-9,\s\-()_[\]!@]{3,64}$/;
   if (!formData.job_company.trim()) {
     errors.job_company = 'Company Name is required';
   } else if (!jobCompanyValidator.test(formData.job_company)) {
@@ -35,7 +35,6 @@ export function validateJobPostForm(formData) {
   } else if (formData.job_description.trim().length < 10 || formData.job_description.trim().length > 1000) {
     errors.job_description = 'Job Description should be between 10 and 1000 characters.';
   }
-  // console.log(errors);
   return errors;
 }
 

@@ -46,7 +46,7 @@ const TABLE_HEAD = [
 
 export default function DecideApplicationPage({ authToken }) {
   const token = authToken;
-  console.log(token);
+  // console.log(token);
   const navigate = useNavigate();
 
   const [page, setPage] = useState(0);

@@ -14,8 +14,8 @@ spec:
     spec:
       containers:
       - name: referral
-        image: docker.io/jerryji040506/referral:linux
-        imagePullPolicy: Always
+        image: "{{ .Values.referral.registry }}/{{ .Values.referral.username }}/{{ .Values.referral.repository }}:{{ .Values.referral.tag }}"
+        imagePullPolicy: {{.Values.referral.imagePullPolicy}}
         ports:
         - containerPort: 8000
         - containerPort: 3000
@@ -29,7 +29,7 @@ spec:
           value: {{.Release.Name}}-rabbit-service  # match rabbit-service name
         volumeMounts:
         - name: resume-volume
-          mountPath: /app/backend/media # match resume-volume
+          mountPath: {{.Values.resume_mounted_path}} # match resume-volume
       volumes:
         - name: resume-volume
           persistentVolumeClaim:

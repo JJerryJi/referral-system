@@ -61,7 +61,7 @@ export default function AccountPopover() {
 
   const handleOpen = (event) => {
     setOpen(event.currentTarget);
-    console.log(open);
+    // console.log(open);
   };
 
   const handleClose = ()=>{
