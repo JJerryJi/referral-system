@@ -1,0 +1,57 @@
+apiVersion: v1
+kind: Service # ADD IP HASH configuration
+metadata:
+  name: {{.Release.Name}}-pg-service
+spec:
+  selector:
+    app: postgres
+  ports:
+    - protocol: TCP
+      port: 5432 # PostgreSQL default port
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Release.Name}}-redis-service
+spec:
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      port: 6379
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Release.Name}}-rabbit-service
+spec:
+  selector:
+    app: rabbitmq
+  ports:
+    - protocol: TCP
+      name: port1
+      port: 5672  
+    - protocol: TCP
+      name: port2
+      port: 15672
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{.Release.Name}}-my-service
+spec:
+  selector:
+    app: my-app
+  ports:
+    - name: react
+      port: 3000
+      targetPort: 3000
+    - name: django
+      port: 8000
+      targetPort: 8000
+    - name: fastapi
+      port: 8001
+      targetPort: 8001

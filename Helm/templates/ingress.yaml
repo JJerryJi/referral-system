@@ -87,6 +87,6 @@ spec:
               service:
                 name: {{.Release.Name}}-my-service
                 port:
-                  number: 8002
+                  number: 8001
             path: /ws  # Assuming WebSocket connections use this path
             pathType: Prefix

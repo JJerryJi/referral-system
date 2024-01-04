@@ -1,2 +1,8 @@
 # values.yaml
 replicaCount: 1
+
+referral:
+  registry : docker.io
+  username : jerryji040506
+  repository: referral
+  tag: linux

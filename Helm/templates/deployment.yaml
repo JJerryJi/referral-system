@@ -1,26 +1,9 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: resume-volume-pvc
-  labels:
-    app.kubernetes.io/managed-by: Helm
-  annotations:
-    meta.helm.sh/release-name: {{ .Release.Name }}
-    meta.helm.sh/release-namespace: default
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 100Mi  # Size of the storage
-
---- 
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ .Release.Name }}-deployment
 spec:
-  replicas: {{ .Values.replicaCouxnt }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: my-app
@@ -31,7 +14,7 @@ spec:
     spec:
       containers:
       - name: referral
-        image: jerryji040506/referral:linux
+        image: docker.io/jerryji040506/referral:linux
         imagePullPolicy: Always
         ports:
         - containerPort: 8000
@@ -51,21 +34,3 @@ spec:
         - name: resume-volume
           persistentVolumeClaim:
             claimName: resume-volume-pvc  # Use the PVC name here
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: {{.Release.Name}}-my-service
-spec:
-  selector:
-    app: my-app
-  ports:
-    - name: react
-      port: 3000
-      targetPort: 3000
-    - name: django
-      port: 8000
-      targetPort: 8000
-    - name: fastapi
-      port: 8002
-      targetPort: 8001
