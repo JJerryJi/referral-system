@@ -1,7 +1,8 @@
+### PG SERVICE
 apiVersion: v1
 kind: Service # ADD IP HASH configuration
 metadata:
-  name: {{.Release.Name}}-pg-service
+  name: pg-{{.Release.Name}}
 spec:
   selector:
     app: postgres
@@ -10,10 +11,11 @@ spec:
       port: 5432 # PostgreSQL default port
 
 ---
+### REDIS SERVICE
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{.Release.Name}}-redis-service
+  name: redis-{{.Release.Name}}
 spec:
   selector:
     app: redis
@@ -22,10 +24,11 @@ spec:
       port: 6379
 
 ---
+### RABBITMQ SERVICE
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{.Release.Name}}-rabbit-service
+  name: rabbit-{{.Release.Name}}
 spec:
   selector:
     app: rabbitmq
@@ -41,7 +44,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{.Release.Name}}-my-service
+  name: referral-{{.Release.Name}}
 spec:
   selector:
     app: my-app

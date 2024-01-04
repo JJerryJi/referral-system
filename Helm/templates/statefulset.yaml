@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{.Release.Name}}-rabbitmq-statefulset
+  name: rabbitmq-{{.Release.Name}}
 spec:
   serviceName: "rabbitmq"
   replicas: 1
@@ -40,7 +40,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{.Release.Name}}-redis-statefulset
+  name: redis-{{.Release.Name}}
 spec:
   serviceName: redis
   replicas: 1
@@ -74,7 +74,7 @@ spec:
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{.Release.Name}}-postgres-statefulset
+  name: postgres-{{.Release.Name}}
 spec:
   serviceName: postgres
   replicas: 1

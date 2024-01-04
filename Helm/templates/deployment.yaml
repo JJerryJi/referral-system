@@ -22,11 +22,11 @@ spec:
         - containerPort: 8001
         env:
         - name: DB_HOST
-          value: {{.Release.Name}}-pg-service # match pg-service name
+          value: pg-{{.Release.Name}} # match pg-service name
         - name: REDIS_HOST
-          value: {{.Release.Name}}-redis-service  # match redis-service name
+          value: redis-{{.Release.Name}}  # match redis-service name
         - name: RABBIT_HOST
-          value: {{.Release.Name}}-rabbit-service  # match rabbit-service name
+          value: rabbit-{{.Release.Name}}  # match rabbit-service name
         volumeMounts:
         - name: resume-volume
           mountPath: {{.Values.resume_mounted_path}} # match resume-volume

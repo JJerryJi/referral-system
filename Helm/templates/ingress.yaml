@@ -13,49 +13,49 @@ spec:
           ### BACKEND ###
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 8000
             path: /admin
             pathType: Prefix
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 8000
             path: /user
             pathType: Prefix
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 8000
             path: /job
             pathType: Prefix
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 8000
             path: /application
             pathType: Prefix
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 8000
             path: /api
             pathType: Prefix
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 8000
             path: /media
             pathType: Prefix
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 8000
             path: /static
@@ -63,21 +63,21 @@ spec:
           ### FRONTEND ###
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 3000
             path: /static/js/bundle.js
             pathType: Prefix
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 3000
             path: /fonts
             pathType: Prefix
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 3000
             path: /
@@ -85,7 +85,7 @@ spec:
           ### WebSocket Connection
           - backend:
               service:
-                name: {{.Release.Name}}-my-service
+                name: referral-{{.Release.Name}}
                 port:
                   number: 8001
             path: /ws  
