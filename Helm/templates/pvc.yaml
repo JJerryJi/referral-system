@@ -3,11 +3,10 @@ kind: PersistentVolumeClaim
 metadata:
   name: resume-volume-pvc
   annotations:
-    meta.helm.sh/release-name: {{ .Release.Name }}
-    meta.helm.sh/release-namespace: default
+    helm.sh/resource-policy: keep
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 100Mi  # Size of the storage
+      storage: 100Mi

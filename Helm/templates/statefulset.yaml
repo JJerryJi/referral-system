@@ -19,11 +19,9 @@ spec:
           ports:
             - containerPort: 5672
             - containerPort: 15672  # Management UI
-          env:
-            - name: RABBITMQ_DEFAULT_USER
-              value: "guest"
-            - name: RABBITMQ_DEFAULT_PASS
-              value: "guest"
+          envFrom:
+            - configMapRef: 
+                name: rabbitmq-config
           volumeMounts:
             - name: rabbitmq-data
               mountPath: /var/lib/rabbitmq # Common location for rabbitmd data
