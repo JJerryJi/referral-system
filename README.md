@@ -8,7 +8,9 @@ For deployment, the project leverages Helm, a tool that simplifies the managemen
 
 Additionally, Kubernetes Ingress is implemented for external access. This configuration not only facilitates efficient load balancing but also ensures the effective routing of external traffic to the appropriate microservices, enhancing overall system performance and reliability.
 
-## Demo Pages
+## Demo
+
+[Click here to view the demo](https://drive.google.com/file/d/1wEbHqjqIl99W1XqhloNh59yfh98LO8qY/view?usp=sharing)
 
 ### Referral Post DashBoard
 <img width="1437" alt="image" src="https://github.com/JJerryJi/referral-system/assets/106227061/582bf793-c950-4643-ab88-5ba02d69b3a8">
@@ -28,8 +30,8 @@ Additionally, Kubernetes Ingress is implemented for external access. This config
 ### Favorite Referral Posts
 <img width="1439" alt="image" src="https://github.com/JJerryJi/referral-system/assets/106227061/63cbddc6-500d-4c3b-a85a-6a3d1275399f">
 
-### And More ...
-Please checkout the demo
+### And More 10+ Pages...
+[Please checkout the demo](https://drive.google.com/file/d/1wEbHqjqIl99W1XqhloNh59yfh98LO8qY/view?usp=sharing)
 
 ## Repo Structure 
 ---------------------------
